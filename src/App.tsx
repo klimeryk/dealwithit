@@ -1,18 +1,22 @@
-import {useEffect, useState} from 'react';
-import 'jimp/browser/lib/jimp.js';
-import {BitmapImage, GifFrame, GifCodec,GifUtil} from 'gifwrap';
-import glassesImageUrl from './assets/glasses.png';
+import { useEffect, useState } from "react";
+import "jimp/browser/lib/jimp.js";
+import { BitmapImage, GifFrame, GifCodec, GifUtil } from "gifwrap";
+import glassesImageUrl from "./assets/glasses.png";
 
 const { Jimp } = window;
 
-let glassesImage= null;
+let glassesImage = null;
 
 function App() {
   const [outputImage, setOutputImage] = useState(null);
   useEffect(() => {
     async function fetchData() {
       const originalGlassesImage = await Jimp.read(glassesImageUrl);
-      glassesImage = originalGlassesImage.resize(200, Jimp.AUTO, Jimp.RESIZE_BICUBIC);
+      glassesImage = originalGlassesImage.resize(
+        200,
+        Jimp.AUTO,
+        Jimp.RESIZE_BICUBIC,
+      );
     }
 
     fetchData();
@@ -24,7 +28,7 @@ function App() {
 
   async function handleInputImageLoad(event) {
     const originalImage = await Jimp.read(event.target.result);
-    const image = originalImage.resize(256, 256,Jimp.RESIZE_BICUBIC ); 
+    const image = originalImage.resize(256, 256, Jimp.RESIZE_BICUBIC);
 
     const frames = [];
     let jimpFrame = image.clone().blit(glassesImage, 0, 0);
@@ -44,35 +48,45 @@ function App() {
     frames.push(frame);
 
     const codec = new GifCodec();
-    const gif = await codec.encodeGif(frames, { loops: 3 } );
+    const gif = await codec.encodeGif(frames, { loops: 3 });
 
-    console.log('got gif!');
+    console.log("got gif!");
 
     const fileReader = new FileReader();
     fileReader.onload = handleGifLoad;
-    fileReader.readAsDataURL(new File([gif.buffer], "", { type: 'image/png' } ));
+    fileReader.readAsDataURL(new File([gif.buffer], "", { type: "image/png" }));
   }
 
   function onInputImageChange(event) {
     const reader = new FileReader();
     reader.onload = handleInputImageLoad;
-    reader.readAsArrayBuffer( event.target.files[0] );
+    reader.readAsArrayBuffer(event.target.files[0]);
   }
 
   function renderOutputImage() {
-    if (! outputImage) {
+    if (!outputImage) {
       return <div>No image yet!</div>;
     }
 
-    return <div><img src={outputImage} /></div>;
+    return (
+      <div>
+        <img src={outputImage} />
+      </div>
+    );
   }
 
   return (
     <div>
-      <input type="file" id="input-image" name="input-image" accept="image/png, image/jpeg" onChange={onInputImageChange} />
+      <input
+        type="file"
+        id="input-image"
+        name="input-image"
+        accept="image/png, image/jpeg"
+        onChange={onInputImageChange}
+      />
       {renderOutputImage()}
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
