@@ -80,8 +80,8 @@ function App() {
   }
 
   return (
-    <Space direction="vertical" size={16}>
-      <Card title="Testing">
+    <div className="flex shadow-xl items-center">
+      <Card>
         <input
           type="file"
           id="input-image"
@@ -91,7 +91,7 @@ function App() {
         />
         {renderOutputImage()}
       </Card>
-    </Space>
+    </div>
   );
 }
 
