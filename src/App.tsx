@@ -53,7 +53,7 @@ function App() {
       frames.push(frame);
 
       const codec = new GifCodec();
-      const gif = await codec.encodeGif(frames, { loops: 3 });
+      const gif = await codec.encodeGif(frames, { loops: 0 });
 
       const fileReader = new FileReader();
       fileReader.onload = () => {
