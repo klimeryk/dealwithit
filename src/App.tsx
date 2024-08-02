@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import "jimp/browser/lib/jimp.js";
 import { BitmapImage, GifFrame, GifCodec, GifUtil } from "gifwrap";
 import type { Jimp } from "@jimp/core";
+import { Card, Space } from "antd";
 import glassesImageUrl from "./assets/glasses.png";
 
 const { Jimp } = window;
@@ -79,16 +80,18 @@ function App() {
   }
 
   return (
-    <div>
-      <input
-        type="file"
-        id="input-image"
-        name="input-image"
-        accept="image/png, image/jpeg"
-        onChange={onInputImageChange}
-      />
-      {renderOutputImage()}
-    </div>
+    <Space direction="vertical" size={16}>
+      <Card title="Testing">
+        <input
+          type="file"
+          id="input-image"
+          name="input-image"
+          accept="image/png, image/jpeg"
+          onChange={onInputImageChange}
+        />
+        {renderOutputImage()}
+      </Card>
+    </Space>
   );
 }
 
