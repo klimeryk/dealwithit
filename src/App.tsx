@@ -2,14 +2,28 @@ import { useEffect, useState } from "react";
 import "jimp/browser/lib/jimp.js";
 import { BitmapImage, GifFrame, GifCodec, GifUtil } from "gifwrap";
 import type { Jimp } from "@jimp/core";
-import { Card, Space } from "antd";
+import { Button, Card } from "antd";
 import glassesImageUrl from "./assets/glasses.png";
+import type { UploadProps } from "antd";
+import { Upload } from "antd";
+import { DeleteOutlined, InboxOutlined } from "@ant-design/icons";
 
+const { Dragger } = Upload;
 const { Jimp } = window;
 
 let glassesImage: Jimp;
 
+const getDataUrl = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
+
 function App() {
+  const [inputFile, setInputFile] = useState<File>();
+  const [inputImageDataUrl, setInputImageDataUrl] = useState<string>();
   const [outputImage, setOutputImage] = useState<string | null>(null);
   useEffect(() => {
     async function fetchData() {
@@ -79,17 +93,66 @@ function App() {
     );
   }
 
+  function renderFileInput() {
+    const props: UploadProps = {
+      name: "file",
+      multiple: false,
+      accept: "image/png, image/jpeg",
+      customRequest: async (info) => {
+        const selectedFile = info.file as File;
+        setInputFile(selectedFile);
+
+        const selectedFileAsDataUrl = await getDataUrl(selectedFile);
+        setInputImageDataUrl(selectedFileAsDataUrl);
+      },
+    };
+    return (
+      <Dragger {...props}>
+        <p className="ant-upload-drag-icon">
+          <InboxOutlined />
+        </p>
+        <p className="ant-upload-text">
+          Click or drag file to this area to upload
+        </p>
+        <p className="ant-upload-hint">
+          Support for a single or bulk upload. Strictly prohibited from
+          uploading company data or other banned files.
+        </p>
+      </Dragger>
+    );
+  }
+
+  function renderInputImage() {
+    function handleRemoveInputImage() {
+      setInputImageDataUrl("");
+      setInputFile(undefined);
+    }
+
+    return (
+      <div className="flex flex-col gap-2 items-center">
+        <div>
+          <img className="size-40" src={inputImageDataUrl} />
+        </div>
+        <div>
+          <Button
+            type="dashed"
+            danger
+            size="small"
+            icon={<DeleteOutlined />}
+            onClick={handleRemoveInputImage}
+          >
+            Remove image
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex shadow-xl items-center">
       <Card>
-        <input
-          type="file"
-          id="input-image"
-          name="input-image"
-          accept="image/png, image/jpeg"
-          onChange={onInputImageChange}
-        />
-        {renderOutputImage()}
+        {!inputFile && renderFileInput()}
+        {inputImageDataUrl && renderInputImage()}
       </Card>
     </div>
   );
