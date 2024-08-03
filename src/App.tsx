@@ -5,8 +5,8 @@ import type { Jimp } from "@jimp/core";
 import { Button, Card } from "antd";
 import glassesImageUrl from "./assets/glasses.png";
 import type { UploadProps } from "antd";
-import { Upload } from "antd";
-import { DeleteOutlined, InboxOutlined } from "@ant-design/icons";
+import { Upload, Modal } from "antd";
+import { DeleteOutlined, FireOutlined, InboxOutlined } from "@ant-design/icons";
 
 const { Dragger } = Upload;
 const { Jimp } = window;
@@ -22,6 +22,9 @@ const getDataUrl = (file: File): Promise<string> =>
   });
 
 function App() {
+  const [status, setStatus] = useState<
+    "START" | "UPLOADING" | "READY" | "GENERATING" | "DONE"
+  >("START");
   const [inputFile, setInputFile] = useState<File>();
   const [inputImageDataUrl, setInputImageDataUrl] = useState<string>();
   const [outputImage, setOutputImage] = useState<string | null>(null);
@@ -38,12 +41,12 @@ function App() {
     fetchData();
   }, []);
 
-  function onInputImageChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const selectedFiles = event.target.files;
-    if (!selectedFiles || selectedFiles.length === 0) {
-      // TODO: error handling
+  function generateOutputImage() {
+    if (!inputFile) {
       return;
     }
+
+    setStatus("GENERATING");
 
     const reader = new FileReader();
     reader.onload = async () => {
@@ -73,12 +76,13 @@ function App() {
       const fileReader = new FileReader();
       fileReader.onload = () => {
         setOutputImage(fileReader.result as string);
+        setStatus("DONE");
       };
       fileReader.readAsDataURL(
         new File([gif.buffer], "", { type: "image/png" }),
       );
     };
-    reader.readAsArrayBuffer(selectedFiles[0]);
+    reader.readAsArrayBuffer(inputFile);
   }
 
   function renderOutputImage() {
@@ -101,9 +105,11 @@ function App() {
       customRequest: async (info) => {
         const selectedFile = info.file as File;
         setInputFile(selectedFile);
+        setStatus("UPLOADING");
 
         const selectedFileAsDataUrl = await getDataUrl(selectedFile);
         setInputImageDataUrl(selectedFileAsDataUrl);
+        setStatus("READY");
       },
     };
     return (
@@ -124,6 +130,7 @@ function App() {
 
   function renderInputImage() {
     function handleRemoveInputImage() {
+      setStatus("START");
       setInputImageDataUrl("");
       setInputFile(undefined);
     }
@@ -148,12 +155,52 @@ function App() {
     );
   }
 
+  function renderForm() {
+    return (
+      <div className="flex-1">
+        <div className="flex flex-col items-end">
+          <Button
+            type="primary"
+            size="large"
+            onClick={generateOutputImage}
+            loading={status === "GENERATING"}
+            icon={<FireOutlined />}
+          >
+            Deal with it!
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  function closeModal() {
+    setStatus("READY");
+  }
+
   return (
     <div className="flex shadow-xl items-center">
       <Card>
-        {!inputFile && renderFileInput()}
-        {inputImageDataUrl && renderInputImage()}
+        <div className="w-[32rem] flex flex-row gap-4">
+          <div className="flex">
+            {status === "START" && renderFileInput()}
+            {status !== "START" && renderInputImage()}
+          </div>
+          {status !== "START" && renderForm()}
+        </div>
       </Card>
+      <Modal
+        title="Here's your shiny new emoji!"
+        open={status === "DONE"}
+        onCancel={closeModal}
+        footer={[
+          <Button key="download" type="primary" onClick={closeModal}>
+            Download
+          </Button>,
+        ]}
+        width={304}
+      >
+        {renderOutputImage()}
+      </Modal>
     </div>
   );
 }
