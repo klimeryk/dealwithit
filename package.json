@@ -12,12 +12,14 @@
   "dependencies": {
     "@ant-design/icons": "^5.4.0",
     "antd": "^5.19.4",
+    "file-saver": "^2.0.5",
     "gifwrap": "^0.10.1",
     "jimp": "^0.22.12",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@types/file-saver": "^2.0.7",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@typescript-eslint/eslint-plugin": "^7.15.0",

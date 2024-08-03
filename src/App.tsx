@@ -6,7 +6,13 @@ import { Button, Card } from "antd";
 import glassesImageUrl from "./assets/glasses.png";
 import type { UploadProps } from "antd";
 import { Upload, Modal } from "antd";
-import { DeleteOutlined, FireOutlined, InboxOutlined } from "@ant-design/icons";
+import {
+  DeleteOutlined,
+  DownloadOutlined,
+  FireOutlined,
+  InboxOutlined,
+} from "@ant-design/icons";
+import { saveAs } from "file-saver";
 
 const { Dragger } = Upload;
 const { Jimp } = window;
@@ -26,8 +32,9 @@ function App() {
     "START" | "UPLOADING" | "READY" | "GENERATING" | "DONE"
   >("START");
   const [inputFile, setInputFile] = useState<File>();
-  const [inputImageDataUrl, setInputImageDataUrl] = useState<string>();
-  const [outputImage, setOutputImage] = useState<string | null>(null);
+  const [inputImageDataUrl, setInputImageDataUrl] = useState("");
+  const [outputImage, setOutputImage] = useState<Blob>();
+  const [outputImageDataUrl, setOutputImageDataUrl] = useState("");
   useEffect(() => {
     async function fetchData() {
       const originalGlassesImage = await Jimp.read(glassesImageUrl);
@@ -72,27 +79,27 @@ function App() {
 
       const codec = new GifCodec();
       const gif = await codec.encodeGif(frames, { loops: 0 });
+      const gifBlob = new File([gif.buffer], "", { type: "image/gif" });
+      setOutputImage(gifBlob);
 
       const fileReader = new FileReader();
       fileReader.onload = () => {
-        setOutputImage(fileReader.result as string);
+        setOutputImageDataUrl(fileReader.result as string);
         setStatus("DONE");
       };
-      fileReader.readAsDataURL(
-        new File([gif.buffer], "", { type: "image/png" }),
-      );
+      fileReader.readAsDataURL(gifBlob);
     };
     reader.readAsArrayBuffer(inputFile);
   }
 
   function renderOutputImage() {
-    if (!outputImage) {
+    if (!outputImageDataUrl) {
       return <div>No image yet!</div>;
     }
 
     return (
       <div>
-        <img src={outputImage} />
+        <img src={outputImageDataUrl} />
       </div>
     );
   }
@@ -177,6 +184,13 @@ function App() {
     setStatus("READY");
   }
 
+  function downloadOutput() {
+    if (outputImage) {
+      saveAs(outputImage, "dealwithit.gif");
+    }
+    closeModal();
+  }
+
   return (
     <div className="flex shadow-xl items-center">
       <Card>
@@ -193,7 +207,12 @@ function App() {
         open={status === "DONE"}
         onCancel={closeModal}
         footer={[
-          <Button key="download" type="primary" onClick={closeModal}>
+          <Button
+            key="download"
+            type="primary"
+            onClick={downloadOutput}
+            icon={<DownloadOutlined />}
+          >
             Download
           </Button>,
         ]}
