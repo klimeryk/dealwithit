@@ -21,9 +21,11 @@ import {
   Space,
   Upload,
   Modal,
+  message,
 } from "antd";
 import { saveAs } from "file-saver";
 import { BitmapImage, GifFrame, GifCodec, GifUtil } from "gifwrap";
+import party from "party-js";
 import { useEffect, useState, useRef } from "react";
 
 import glassesImageUrl from "./assets/glasses.png";
@@ -44,6 +46,7 @@ const getDataUrl = (file: File): Promise<string> =>
   });
 
 function App() {
+  const [messageApi, contextHolder] = message.useMessage();
   const [status, setStatus] = useState<
     "START" | "READY" | "GENERATING" | "DONE"
   >("START");
@@ -55,7 +58,8 @@ function App() {
     x: 35,
     y: 54,
   });
-  const inputImageRef = useRef<null | HTMLImageElement>(null);
+  const outputImageRef = useRef<null | HTMLImageElement>(null);
+  const [mode, setMode] = useState<"NORMAL" | "HEDGEHOG">("NORMAL");
 
   const [form] = Form.useForm();
   const lastFrameDelayEnabled = Form.useWatch(
@@ -185,13 +189,9 @@ function App() {
   }
 
   function renderOutputImage() {
-    if (!outputImageDataUrl) {
-      return <div>No image yet!</div>;
-    }
-
     return (
       <div className="flex flex-col items-center">
-        <img src={outputImageDataUrl} />
+        <img ref={outputImageRef} src={outputImageDataUrl} />
       </div>
     );
   }
@@ -204,6 +204,15 @@ function App() {
       customRequest: async (info) => {
         const selectedFile = info.file as File;
         setInputFile(selectedFile);
+        if (selectedFile.name.match(/(hedgehog|posthog)/gi)) {
+          setMode("HEDGEHOG");
+          messageApi.info({
+            content: "Hello fellow hedgehog fan!",
+            icon: <span className="mr-1 text-lg">🦔</span>,
+          });
+        } else {
+          setMode("NORMAL");
+        }
 
         const selectedFileAsDataUrl = await getDataUrl(selectedFile);
         setInputImageDataUrl(selectedFileAsDataUrl);
@@ -238,11 +247,7 @@ function App() {
     return (
       <div className="flex flex-col gap-2 items-center">
         <div className="relative">
-          <img
-            className="size-40"
-            src={inputImageDataUrl}
-            ref={inputImageRef}
-          />
+          <img className="size-40" src={inputImageDataUrl} />
           <img
             className="absolute w-1/2 left-0 top-0 hover:cursor-move"
             src={glassesImageUrl}
@@ -371,8 +376,25 @@ function App() {
     closeModal();
   }
 
+  function onModalOpenChange(open: boolean) {
+    if (open && outputImageRef.current) {
+      if (mode === "HEDGEHOG") {
+        const hedgehog = document.createElement("span");
+        hedgehog.innerText = "🦔";
+        hedgehog.style.fontSize = "48px";
+        const heart = document.createElement("span");
+        heart.innerText = "💖";
+        heart.style.fontSize = "24px";
+        party.confetti(outputImageRef.current, { shapes: [hedgehog, heart] });
+      } else {
+        party.confetti(outputImageRef.current);
+      }
+    }
+  }
+
   return (
     <div className="flex shadow-xl items-center">
+      {contextHolder}
       <Card>
         <div className="flex flex-row gap-4">
           <div className="flex">
@@ -386,6 +408,8 @@ function App() {
         title="Here's your shiny new emoji!"
         open={status === "DONE"}
         onCancel={closeModal}
+        destroyOnClose
+        afterOpenChange={onModalOpenChange}
         footer={[
           <Button
             key="download"
