@@ -8,8 +8,6 @@ import {
 import { useDraggable, useDndMonitor } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import type { Coordinates } from "@dnd-kit/utilities";
-import type { Jimp } from "@jimp/core";
-import type { ResizeClass } from "@jimp/plugin-resize";
 import type { UploadProps } from "antd";
 import {
   Form,
@@ -24,18 +22,12 @@ import {
   message,
 } from "antd";
 import { saveAs } from "file-saver";
-import { BitmapImage, GifFrame, GifCodec, GifUtil } from "gifwrap";
 import party from "party-js";
-import { useEffect, useState, useRef } from "react";
+import { useMemo, useState, useRef } from "react";
 
 import glassesImageUrl from "./assets/glasses.png";
 
 const { Dragger } = Upload;
-const { Jimp } = window;
-
-let glassesImage: Jimp & ResizeClass;
-
-const DEFAULT_IMAGE_SIZE = 160;
 
 const getDataUrl = (file: File): Promise<string> =>
   new Promise((resolve, reject) => {
@@ -46,6 +38,13 @@ const getDataUrl = (file: File): Promise<string> =>
   });
 
 function App() {
+  const gifWorker = useMemo(
+    () =>
+      new Worker(new URL("./worker/gif.worker.ts", import.meta.url), {
+        type: "module",
+      }),
+    [],
+  );
   const [messageApi, contextHolder] = message.useMessage();
   const [status, setStatus] = useState<
     "START" | "READY" | "GENERATING" | "DONE"
@@ -88,104 +87,33 @@ function App() {
     },
   });
 
-  useEffect(() => {
-    async function loadGlassesImage() {
-      glassesImage = await Jimp.read(glassesImageUrl);
-    }
-
-    loadGlassesImage();
-  }, []);
+  gifWorker.onmessage = ({ data }) => {
+    const { gifBlob, resultDataUrl } = data;
+    setOutputImage(gifBlob);
+    setOutputImageDataUrl(resultDataUrl);
+    setStatus("DONE");
+  };
 
   function generateOutputImage() {
     if (!inputFile) {
       return;
     }
 
+    const configurationOptions = form.getFieldsValue([
+      ["looping"],
+      ["lastFrameDelay"],
+      ["frameDelay"],
+      ["numberOfFrames"],
+      ["size"],
+    ]);
+
+    gifWorker.postMessage({
+      configurationOptions,
+      glasses: { x, y, url: glassesImageUrl },
+      inputFile,
+    });
+
     setStatus("GENERATING");
-
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const { looping, frameDelay, lastFrameDelay, numberOfFrames, size } =
-        form.getFieldsValue([
-          ["looping"],
-          ["lastFrameDelay"],
-          ["frameDelay"],
-          ["numberOfFrames"],
-          ["size"],
-        ]);
-
-      const originalImage = await Jimp.read(reader.result as Buffer);
-      const image = originalImage.resize(
-        size.width,
-        size.height,
-        Jimp.RESIZE_BICUBIC,
-      );
-
-      function getNumberOfLoops() {
-        if (looping.mode === "infinite") {
-          return 0;
-        }
-
-        return looping.loops;
-      }
-
-      function getLastFrameDelay() {
-        if (looping.mode === "off") {
-          // If you waited for a day, you deserve to see this workaround...
-          // Since there is no way to not loop a gif using gifwrap,
-          // let's just put a reeeeaaaaallly long delay after the last frame.
-          return 8640000;
-        }
-
-        return Math.round(
-          (lastFrameDelay.enabled && lastFrameDelay.value > 0
-            ? lastFrameDelay.value
-            : frameDelay) / 10,
-        );
-      }
-
-      const frames = [];
-      const scaledGlassesImage = glassesImage
-        .clone()
-        .resize(size.width / 2, Jimp.AUTO, Jimp.RESIZE_BICUBIC);
-      const scaledX = (size.height / DEFAULT_IMAGE_SIZE) * x;
-      const scaledY = (size.width / DEFAULT_IMAGE_SIZE) * y;
-      const yMovementPerFrame = scaledY / numberOfFrames;
-      for (let frameNumber = 0; frameNumber < numberOfFrames; ++frameNumber) {
-        const jimpFrame = image
-          .clone()
-          .blit(scaledGlassesImage, scaledX, frameNumber * yMovementPerFrame);
-        const jimpBitmap = new BitmapImage(jimpFrame.bitmap);
-        GifUtil.quantizeDekker(jimpBitmap, 256);
-        const frame = new GifFrame(jimpBitmap, {
-          delayCentisecs: Math.round(frameDelay / 10),
-        });
-        frames.push(frame);
-      }
-
-      const jimpFrame = image
-        .clone()
-        .blit(scaledGlassesImage, scaledX, numberOfFrames * yMovementPerFrame);
-      const jimpBitmap = new BitmapImage(jimpFrame.bitmap);
-      GifUtil.quantizeDekker(jimpBitmap, 256);
-      const frame = new GifFrame(jimpBitmap, {
-        delayCentisecs: getLastFrameDelay(),
-      });
-      frames.push(frame);
-
-      const codec = new GifCodec();
-      const gif = await codec.encodeGif(frames, { loops: getNumberOfLoops() });
-      const gifBlob = new File([gif.buffer], "", { type: "image/gif" });
-      setOutputImage(gifBlob);
-
-      const fileReader = new FileReader();
-      fileReader.onload = () => {
-        setOutputImageDataUrl(fileReader.result as string);
-        setStatus("DONE");
-      };
-      fileReader.readAsDataURL(gifBlob);
-    };
-    reader.readAsArrayBuffer(inputFile);
   }
 
   function renderOutputImage() {
