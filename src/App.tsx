@@ -15,7 +15,6 @@ import {
   Switch,
   InputNumber,
   Button,
-  Card,
   Space,
   Upload,
   Modal,
@@ -203,9 +202,10 @@ function App() {
   function renderForm() {
     return (
       <Form
-        className="size-40"
+        className="w-40"
         form={form}
         layout="vertical"
+        disabled={status === "START"}
         initialValues={{
           numberOfFrames: 15,
           frameDelay: 100,
@@ -321,38 +321,51 @@ function App() {
   }
 
   return (
-    <div className="flex shadow-xl items-center">
-      {contextHolder}
-      <Card>
-        <div className="flex flex-row gap-4">
-          <div className="flex">
-            {status === "START" && renderFileInput()}
-            {status !== "START" && renderInputImage()}
+    <>
+      <div className="flex w-full items-center justify-center">
+        <span className="absolute mx-auto py-4 flex border w-fit bg-gradient-to-r blur-xl from-blue-500 via-teal-500 to-pink-500 bg-clip-text text-6xl box-content font-extrabold text-transparent text-center select-none">
+          Deal With It GIF emoji generator
+        </span>
+        <h1 className="relative top-0 w-fit h-auto py-4 justify-center flex bg-gradient-to-r items-center from-blue-500 via-teal-500 to-pink-500 bg-clip-text text-6xl font-extrabold text-transparent text-center select-auto">
+          Deal With It GIF emoji generator
+        </h1>
+      </div>
+      <h3 className="leading-relaxed text-base text-center text-gray-500">
+        All done artisanally and securely in your browser.
+      </h3>
+      <div className="relative py-3 sm:max-w-xl sm:mx-auto">
+        {contextHolder}
+        <div className="relative p-10 bg-white shadow-lg sm:rounded-3xl">
+          <div className="grid grid-cols-2 gap-4">
+            <>
+              {status === "START" && renderFileInput()}
+              {status !== "START" && renderInputImage()}
+            </>
+            {renderForm()}
           </div>
-          {status !== "START" && renderForm()}
-        </div>
-      </Card>
-      <Modal
-        title="Here's your shiny new emoji!"
-        open={status === "DONE"}
-        onCancel={closeModal}
-        destroyOnClose
-        afterOpenChange={onModalOpenChange}
-        footer={[
-          <Button
-            key="download"
-            type="primary"
-            onClick={downloadOutput}
-            icon={<DownloadOutlined />}
+          <Modal
+            title="Here's your shiny new emoji!"
+            open={status === "DONE"}
+            onCancel={closeModal}
+            destroyOnClose
+            afterOpenChange={onModalOpenChange}
+            footer={[
+              <Button
+                key="download"
+                type="primary"
+                onClick={downloadOutput}
+                icon={<DownloadOutlined />}
+              >
+                Download
+              </Button>,
+            ]}
+            width={304}
           >
-            Download
-          </Button>,
-        ]}
-        width={304}
-      >
-        {renderOutputImage()}
-      </Modal>
-    </div>
+            {renderOutputImage()}
+          </Modal>
+        </div>
+      </div>
+    </>
   );
 }
 
