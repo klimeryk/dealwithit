@@ -9,6 +9,7 @@ import { useDraggable, useDndMonitor } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import type { Coordinates } from "@dnd-kit/utilities";
 import type { Jimp } from "@jimp/core";
+import type { ResizeClass } from "@jimp/plugin-resize";
 import type { UploadProps } from "antd";
 import {
   Form,
@@ -30,9 +31,9 @@ import glassesImageUrl from "./assets/glasses.png";
 const { Dragger } = Upload;
 const { Jimp } = window;
 
-let glassesImage: Jimp;
+let glassesImage: Jimp & ResizeClass;
 
-const MAX_IMAGE_SIZE = 160;
+const DEFAULT_IMAGE_SIZE = 160;
 
 const getDataUrl = (file: File): Promise<string> =>
   new Promise((resolve, reject) => {
@@ -44,7 +45,7 @@ const getDataUrl = (file: File): Promise<string> =>
 
 function App() {
   const [status, setStatus] = useState<
-    "START" | "UPLOADING" | "READY" | "GENERATING" | "DONE"
+    "START" | "READY" | "GENERATING" | "DONE"
   >("START");
   const [inputFile, setInputFile] = useState<File>();
   const [inputImageDataUrl, setInputImageDataUrl] = useState("");
@@ -54,7 +55,7 @@ function App() {
     x: 35,
     y: 54,
   });
-  const inputImageRef = useRef(null);
+  const inputImageRef = useRef<null | HTMLImageElement>(null);
 
   const [form] = Form.useForm();
   const lastFrameDelayEnabled = Form.useWatch(
@@ -85,12 +86,7 @@ function App() {
 
   useEffect(() => {
     async function loadGlassesImage() {
-      const originalGlassesImage = await Jimp.read(glassesImageUrl);
-      glassesImage = originalGlassesImage.resize(
-        MAX_IMAGE_SIZE / 2,
-        Jimp.AUTO,
-        Jimp.RESIZE_BICUBIC,
-      );
+      glassesImage = await Jimp.read(glassesImageUrl);
     }
 
     loadGlassesImage();
@@ -105,20 +101,21 @@ function App() {
 
     const reader = new FileReader();
     reader.onload = async () => {
-      const originalImage = await Jimp.read(reader.result as Buffer);
-      const image = originalImage.resize(
-        MAX_IMAGE_SIZE,
-        MAX_IMAGE_SIZE,
-        Jimp.RESIZE_BICUBIC,
-      );
-
-      const { looping, frameDelay, lastFrameDelay, numberOfFrames } =
+      const { looping, frameDelay, lastFrameDelay, numberOfFrames, size } =
         form.getFieldsValue([
           ["looping"],
           ["lastFrameDelay"],
           ["frameDelay"],
           ["numberOfFrames"],
+          ["size"],
         ]);
+
+      const originalImage = await Jimp.read(reader.result as Buffer);
+      const image = originalImage.resize(
+        size.width,
+        size.height,
+        Jimp.RESIZE_BICUBIC,
+      );
 
       function getNumberOfLoops() {
         if (looping.mode === "infinite") {
@@ -144,11 +141,16 @@ function App() {
       }
 
       const frames = [];
-      const yMovementPerFrame = y / numberOfFrames;
+      const scaledGlassesImage = glassesImage
+        .clone()
+        .resize(size.width / 2, Jimp.AUTO, Jimp.RESIZE_BICUBIC);
+      const scaledX = (size.height / DEFAULT_IMAGE_SIZE) * x;
+      const scaledY = (size.width / DEFAULT_IMAGE_SIZE) * y;
+      const yMovementPerFrame = scaledY / numberOfFrames;
       for (let frameNumber = 0; frameNumber < numberOfFrames; ++frameNumber) {
         const jimpFrame = image
           .clone()
-          .blit(glassesImage, x, frameNumber * yMovementPerFrame);
+          .blit(scaledGlassesImage, scaledX, frameNumber * yMovementPerFrame);
         const jimpBitmap = new BitmapImage(jimpFrame.bitmap);
         GifUtil.quantizeDekker(jimpBitmap, 256);
         const frame = new GifFrame(jimpBitmap, {
@@ -159,7 +161,7 @@ function App() {
 
       const jimpFrame = image
         .clone()
-        .blit(glassesImage, x, numberOfFrames * yMovementPerFrame);
+        .blit(scaledGlassesImage, scaledX, numberOfFrames * yMovementPerFrame);
       const jimpBitmap = new BitmapImage(jimpFrame.bitmap);
       GifUtil.quantizeDekker(jimpBitmap, 256);
       const frame = new GifFrame(jimpBitmap, {
@@ -202,7 +204,6 @@ function App() {
       customRequest: async (info) => {
         const selectedFile = info.file as File;
         setInputFile(selectedFile);
-        setStatus("UPLOADING");
 
         const selectedFileAsDataUrl = await getDataUrl(selectedFile);
         setInputImageDataUrl(selectedFileAsDataUrl);
@@ -237,7 +238,11 @@ function App() {
     return (
       <div className="flex flex-col gap-2 items-center">
         <div className="relative">
-          <img className="size-40" src={inputImageDataUrl} />
+          <img
+            className="size-40"
+            src={inputImageDataUrl}
+            ref={inputImageRef}
+          />
           <img
             className="absolute w-1/2 left-0 top-0 hover:cursor-move"
             src={glassesImageUrl}
@@ -273,6 +278,7 @@ function App() {
           frameDelay: 100,
           lastFrameDelay: { enabled: true, value: 1000 },
           looping: { mode: "infinite", loops: 5 },
+          size: { width: 160, height: 160 },
         }}
       >
         <Form.Item label="Loops" name={["looping", "mode"]}>
@@ -326,6 +332,20 @@ function App() {
               />
             </Form.Item>
           </Space>
+        </Form.Item>
+        <Form.Item
+          label="Width"
+          tooltip="Width of the output GIF"
+          name={["size", "width"]}
+        >
+          <InputNumber addonAfter="px" style={{ width: "100%" }} min={1} />
+        </Form.Item>
+        <Form.Item
+          label="Height"
+          tooltip="Height of the output GIF"
+          name={["size", "height"]}
+        >
+          <InputNumber addonAfter="px" style={{ width: "100%" }} min={1} />
         </Form.Item>
         <Button
           type="primary"
