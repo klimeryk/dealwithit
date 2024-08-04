@@ -13,11 +13,18 @@ import {
   InboxOutlined,
 } from "@ant-design/icons";
 import { saveAs } from "file-saver";
+import { useDraggable, useDroppable, useDndMonitor } from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
+import type { Coordinates } from "@dnd-kit/utilities";
 
 const { Dragger } = Upload;
 const { Jimp } = window;
 
 let glassesImage: Jimp;
+
+const MAX_IMAGE_SIZE = 160;
+const NUMBER_OF_FRAMES_FOR_GLASSES = 15;
+const LAST_FRAME_DELAY = 100;
 
 const getDataUrl = (file: File): Promise<string> =>
   new Promise((resolve, reject) => {
@@ -35,11 +42,39 @@ function App() {
   const [inputImageDataUrl, setInputImageDataUrl] = useState("");
   const [outputImage, setOutputImage] = useState<Blob>();
   const [outputImageDataUrl, setOutputImageDataUrl] = useState("");
+  const [{ x, y }, setGlassesCoordinates] = useState<Coordinates>({
+    x: 35,
+    y: 54,
+  });
+
+  const { setNodeRef: setDroppableRef } = useDroppable({
+    id: "imageDroppable",
+  });
+  const {
+    attributes,
+    listeners,
+    setNodeRef: setDraggableRef,
+    transform,
+  } = useDraggable({
+    id: "glassesDraggable",
+  });
+
+  useDndMonitor({
+    onDragEnd({ delta }) {
+      setGlassesCoordinates(({ x, y }) => {
+        return {
+          x: x + delta.x,
+          y: y + delta.y,
+        };
+      });
+    },
+  });
+
   useEffect(() => {
     async function fetchData() {
       const originalGlassesImage = await Jimp.read(glassesImageUrl);
       glassesImage = originalGlassesImage.resize(
-        200,
+        MAX_IMAGE_SIZE / 2,
         Jimp.AUTO,
         Jimp.RESIZE_BICUBIC,
       );
@@ -58,23 +93,40 @@ function App() {
     const reader = new FileReader();
     reader.onload = async () => {
       const originalImage = await Jimp.read(reader.result as Buffer);
-      const image = originalImage.resize(256, 256, Jimp.RESIZE_BICUBIC);
+      const image = originalImage.resize(
+        MAX_IMAGE_SIZE,
+        MAX_IMAGE_SIZE,
+        Jimp.RESIZE_BICUBIC,
+      );
 
       const frames = [];
-      let jimpFrame = image.clone().blit(glassesImage, 0, 0);
-      let jimpBitmap = new BitmapImage(jimpFrame.bitmap);
+      const yMovementPerFrame = y / NUMBER_OF_FRAMES_FOR_GLASSES;
+      for (
+        let frameNumber = 0;
+        frameNumber < NUMBER_OF_FRAMES_FOR_GLASSES;
+        ++frameNumber
+      ) {
+        const jimpFrame = image
+          .clone()
+          .blit(glassesImage, x, frameNumber * yMovementPerFrame);
+        const jimpBitmap = new BitmapImage(jimpFrame.bitmap);
+        GifUtil.quantizeDekker(jimpBitmap, 256);
+        const frame = new GifFrame(jimpBitmap, { delayCentisecs: 20 });
+        frames.push(frame);
+      }
+
+      const jimpFrame = image
+        .clone()
+        .blit(
+          glassesImage,
+          x,
+          NUMBER_OF_FRAMES_FOR_GLASSES * yMovementPerFrame,
+        );
+      const jimpBitmap = new BitmapImage(jimpFrame.bitmap);
       GifUtil.quantizeDekker(jimpBitmap, 256);
-      let frame = new GifFrame(jimpBitmap, { delayCentisecs: 20 });
-      frames.push(frame);
-      jimpFrame = image.clone().blit(glassesImage, 0, 20);
-      jimpBitmap = new BitmapImage(jimpFrame.bitmap);
-      GifUtil.quantizeDekker(jimpBitmap, 256);
-      frame = new GifFrame(jimpBitmap, { delayCentisecs: 20 });
-      frames.push(frame);
-      jimpFrame = image.clone().blit(glassesImage, 0, 40);
-      jimpBitmap = new BitmapImage(jimpFrame.bitmap);
-      GifUtil.quantizeDekker(jimpBitmap, 256);
-      frame = new GifFrame(jimpBitmap, { delayCentisecs: 20 });
+      const frame = new GifFrame(jimpBitmap, {
+        delayCentisecs: LAST_FRAME_DELAY,
+      });
       frames.push(frame);
 
       const codec = new GifCodec();
@@ -98,7 +150,7 @@ function App() {
     }
 
     return (
-      <div>
+      <div className="flex flex-col items-center">
         <img src={outputImageDataUrl} />
       </div>
     );
@@ -142,10 +194,28 @@ function App() {
       setInputFile(undefined);
     }
 
+    const style = {
+      transform: CSS.Translate.toString(transform),
+      left: x,
+      top: y,
+    };
+
     return (
       <div className="flex flex-col gap-2 items-center">
-        <div>
-          <img className="size-40" src={inputImageDataUrl} />
+        <div className="relative">
+          <img
+            className="size-40"
+            src={inputImageDataUrl}
+            ref={setDroppableRef}
+          />
+          <img
+            className="absolute w-1/2 left-0 top-0"
+            src={glassesImageUrl}
+            ref={setDraggableRef}
+            style={style}
+            {...listeners}
+            {...attributes}
+          />
         </div>
         <div>
           <Button
