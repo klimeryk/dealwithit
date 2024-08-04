@@ -1,9 +1,11 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
-import App from "./App.tsx";
-import "./index.css";
 import { DndContext } from "@dnd-kit/core";
 import { restrictToParentElement } from "@dnd-kit/modifiers";
+import React from "react";
+import ReactDOM from "react-dom/client";
+
+import App from "./App.tsx";
+
+import "./index.css";
 
 declare global {
   interface Window {

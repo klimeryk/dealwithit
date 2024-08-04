@@ -3,6 +3,7 @@ module.exports = {
   env: { browser: true, es2020: true },
   extends: [
     'eslint:recommended',
+    'plugin:import/recommended',
     'plugin:@typescript-eslint/recommended',
     'plugin:react-hooks/recommended',
     'plugin:prettier/recommended',
@@ -15,5 +16,16 @@ module.exports = {
       'warn',
       { allowConstantExport: true },
     ],
+    'import/order': [
+      'error',
+      {
+        'groups': ['builtin', 'external', 'parent', 'sibling', 'index'],
+        'newlines-between': 'always',
+        'alphabetize': {
+          'order': 'asc',
+          'caseInsensitive': true
+        }
+      }
+    ]
   },
 }
