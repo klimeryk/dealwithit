@@ -5,4 +5,7 @@ import { defineConfig } from "vite";
 export default defineConfig({
   base: "/deal-with-it-generator/",
   plugins: [react()],
+  build: {
+    outDir: "dist/deal-with-it-generator",
+  },
 });
