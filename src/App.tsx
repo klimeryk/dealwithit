@@ -10,10 +10,20 @@ import { CSS } from "@dnd-kit/utilities";
 import type { Coordinates } from "@dnd-kit/utilities";
 import type { Jimp } from "@jimp/core";
 import type { UploadProps } from "antd";
-import { Button, Card, Upload, Modal } from "antd";
+import {
+  Form,
+  Radio,
+  Switch,
+  InputNumber,
+  Button,
+  Card,
+  Space,
+  Upload,
+  Modal,
+} from "antd";
 import { saveAs } from "file-saver";
 import { BitmapImage, GifFrame, GifCodec, GifUtil } from "gifwrap";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 import glassesImageUrl from "./assets/glasses.png";
 
@@ -23,8 +33,6 @@ const { Jimp } = window;
 let glassesImage: Jimp;
 
 const MAX_IMAGE_SIZE = 160;
-const NUMBER_OF_FRAMES_FOR_GLASSES = 15;
-const LAST_FRAME_DELAY = 100;
 
 const getDataUrl = (file: File): Promise<string> =>
   new Promise((resolve, reject) => {
@@ -46,6 +54,14 @@ function App() {
     x: 35,
     y: 54,
   });
+  const inputImageRef = useRef(null);
+
+  const [form] = Form.useForm();
+  const lastFrameDelayEnabled = Form.useWatch(
+    ["lastFrameDelay", "enabled"],
+    form,
+  );
+  const numberOfLoops = Form.useWatch(["looping", "loops"], form);
 
   const { setNodeRef: setDroppableRef } = useDroppable({
     id: "imageDroppable",
@@ -71,7 +87,7 @@ function App() {
   });
 
   useEffect(() => {
-    async function fetchData() {
+    async function loadGlassesImage() {
       const originalGlassesImage = await Jimp.read(glassesImageUrl);
       glassesImage = originalGlassesImage.resize(
         MAX_IMAGE_SIZE / 2,
@@ -80,7 +96,7 @@ function App() {
       );
     }
 
-    fetchData();
+    loadGlassesImage();
   }, []);
 
   function generateOutputImage() {
@@ -99,38 +115,63 @@ function App() {
         Jimp.RESIZE_BICUBIC,
       );
 
+      const { looping, frameDelay, lastFrameDelay, numberOfFrames } =
+        form.getFieldsValue([
+          ["looping"],
+          ["lastFrameDelay"],
+          ["frameDelay"],
+          ["numberOfFrames"],
+        ]);
+
+      function getNumberOfLoops() {
+        if (looping.mode === "infinite") {
+          return 0;
+        }
+
+        return looping.loops;
+      }
+
+      function getLastFrameDelay() {
+        if (looping.mode === "off") {
+          // If you waited for a day, you deserve to see this workaround...
+          // Since there is no way to not loop a gif using gifwrap,
+          // let's just put a reeeeaaaaallly long delay after the last frame.
+          return 8640000;
+        }
+
+        return Math.round(
+          (lastFrameDelay.enabled && lastFrameDelay.value > 0
+            ? lastFrameDelay.value
+            : frameDelay) / 10,
+        );
+      }
+
       const frames = [];
-      const yMovementPerFrame = y / NUMBER_OF_FRAMES_FOR_GLASSES;
-      for (
-        let frameNumber = 0;
-        frameNumber < NUMBER_OF_FRAMES_FOR_GLASSES;
-        ++frameNumber
-      ) {
+      const yMovementPerFrame = y / numberOfFrames;
+      for (let frameNumber = 0; frameNumber < numberOfFrames; ++frameNumber) {
         const jimpFrame = image
           .clone()
           .blit(glassesImage, x, frameNumber * yMovementPerFrame);
         const jimpBitmap = new BitmapImage(jimpFrame.bitmap);
         GifUtil.quantizeDekker(jimpBitmap, 256);
-        const frame = new GifFrame(jimpBitmap, { delayCentisecs: 20 });
+        const frame = new GifFrame(jimpBitmap, {
+          delayCentisecs: Math.round(frameDelay / 10),
+        });
         frames.push(frame);
       }
 
       const jimpFrame = image
         .clone()
-        .blit(
-          glassesImage,
-          x,
-          NUMBER_OF_FRAMES_FOR_GLASSES * yMovementPerFrame,
-        );
+        .blit(glassesImage, x, numberOfFrames * yMovementPerFrame);
       const jimpBitmap = new BitmapImage(jimpFrame.bitmap);
       GifUtil.quantizeDekker(jimpBitmap, 256);
       const frame = new GifFrame(jimpBitmap, {
-        delayCentisecs: LAST_FRAME_DELAY,
+        delayCentisecs: getLastFrameDelay(),
       });
       frames.push(frame);
 
       const codec = new GifCodec();
-      const gif = await codec.encodeGif(frames, { loops: 0 });
+      const gif = await codec.encodeGif(frames, { loops: getNumberOfLoops() });
       const gifBlob = new File([gif.buffer], "", { type: "image/gif" });
       setOutputImage(gifBlob);
 
@@ -179,10 +220,6 @@ function App() {
         <p className="ant-upload-text">
           Click or drag file to this area to upload
         </p>
-        <p className="ant-upload-hint">
-          Support for a single or bulk upload. Strictly prohibited from
-          uploading company data or other banned files.
-        </p>
       </Dragger>
     );
   }
@@ -209,7 +246,7 @@ function App() {
             ref={setDroppableRef}
           />
           <img
-            className="absolute w-1/2 left-0 top-0"
+            className="absolute w-1/2 left-0 top-0 hover:cursor-move"
             src={glassesImageUrl}
             ref={setDraggableRef}
             style={style}
@@ -234,19 +271,79 @@ function App() {
 
   function renderForm() {
     return (
-      <div className="flex-1">
-        <div className="flex flex-col items-end">
-          <Button
-            type="primary"
-            size="large"
-            onClick={generateOutputImage}
-            loading={status === "GENERATING"}
-            icon={<FireOutlined />}
-          >
-            Deal with it!
-          </Button>
-        </div>
-      </div>
+      <Form
+        className="size-40"
+        form={form}
+        layout="vertical"
+        initialValues={{
+          numberOfFrames: 15,
+          frameDelay: 100,
+          lastFrameDelay: { enabled: true, value: 1000 },
+          looping: { mode: "infinite", loops: 5 },
+        }}
+      >
+        <Form.Item label="Loops" name={["looping", "mode"]}>
+          <Radio.Group>
+            <Space direction="vertical">
+              <Radio value="infinite">Infinite</Radio>
+              <Radio value="off">Off</Radio>
+              <Radio value="finite">
+                <Form.Item name={["looping", "loops"]} noStyle>
+                  <InputNumber
+                    min={1}
+                    addonAfter={numberOfLoops === 1 ? "loop" : "loops"}
+                  />
+                </Form.Item>
+              </Radio>
+            </Space>
+          </Radio.Group>
+        </Form.Item>
+        <Form.Item
+          label="Number of frames"
+          tooltip="How many frames should be rendered - more frames, smoother motion, but bigger file size."
+          name="numberOfFrames"
+        >
+          <InputNumber addonAfter="frames" style={{ width: "100%" }} min={2} />
+        </Form.Item>
+        <Form.Item
+          label="Frame delay"
+          tooltip="How long each frame should take, in miliseconds"
+          name="frameDelay"
+        >
+          <InputNumber addonAfter="ms" style={{ width: "100%" }} min={0} />
+        </Form.Item>
+        <Form.Item
+          label="Last frame delay"
+          tooltip="How long the last frame should linger, for maximum awesomeness! YEAH!"
+        >
+          <Space>
+            <Form.Item
+              noStyle
+              valuePropName="checked"
+              name={["lastFrameDelay", "enabled"]}
+            >
+              <Switch />
+            </Form.Item>
+            <Form.Item noStyle name={["lastFrameDelay", "value"]}>
+              <InputNumber
+                addonAfter="ms"
+                style={{ width: "100%" }}
+                min={10}
+                disabled={!lastFrameDelayEnabled}
+              />
+            </Form.Item>
+          </Space>
+        </Form.Item>
+        <Button
+          type="primary"
+          size="large"
+          onClick={generateOutputImage}
+          loading={status === "GENERATING"}
+          icon={<FireOutlined />}
+        >
+          Deal with it!
+        </Button>
+      </Form>
     );
   }
 
@@ -264,7 +361,7 @@ function App() {
   return (
     <div className="flex shadow-xl items-center">
       <Card>
-        <div className="w-[32rem] flex flex-row gap-4">
+        <div className="flex flex-row gap-4">
           <div className="flex">
             {status === "START" && renderFileInput()}
             {status !== "START" && renderInputImage()}
