@@ -5,7 +5,7 @@ import {
   FireOutlined,
   InboxOutlined,
 } from "@ant-design/icons";
-import { useDraggable, useDroppable, useDndMonitor } from "@dnd-kit/core";
+import { useDraggable, useDndMonitor } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import type { Coordinates } from "@dnd-kit/utilities";
 import type { Jimp } from "@jimp/core";
@@ -63,9 +63,6 @@ function App() {
   );
   const numberOfLoops = Form.useWatch(["looping", "loops"], form);
 
-  const { setNodeRef: setDroppableRef } = useDroppable({
-    id: "imageDroppable",
-  });
   const {
     attributes,
     listeners,
@@ -240,11 +237,7 @@ function App() {
     return (
       <div className="flex flex-col gap-2 items-center">
         <div className="relative">
-          <img
-            className="size-40"
-            src={inputImageDataUrl}
-            ref={setDroppableRef}
-          />
+          <img className="size-40" src={inputImageDataUrl} />
           <img
             className="absolute w-1/2 left-0 top-0 hover:cursor-move"
             src={glassesImageUrl}
