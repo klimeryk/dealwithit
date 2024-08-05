@@ -245,7 +245,12 @@ function App() {
           tooltip="How long each frame should take, in miliseconds"
           name="frameDelay"
         >
-          <InputNumber addonAfter="ms" style={{ width: "100%" }} min={0} />
+          <InputNumber
+            addonAfter="ms"
+            style={{ width: "100%" }}
+            min={0}
+            step={10}
+          />
         </Form.Item>
         <Form.Item
           label="Last frame delay"
@@ -264,7 +269,8 @@ function App() {
                 addonAfter="ms"
                 style={{ width: "100%" }}
                 min={10}
-                disabled={!lastFrameDelayEnabled}
+                step={100}
+                disabled={!lastFrameDelayEnabled || status === "START"}
               />
             </Form.Item>
           </Space>
