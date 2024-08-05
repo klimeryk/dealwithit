@@ -3,6 +3,7 @@ import {
   DeleteOutlined,
   DownloadOutlined,
   FireOutlined,
+  GithubOutlined,
   SmileOutlined,
 } from "@ant-design/icons";
 import { useDraggable, useDndMonitor } from "@dnd-kit/core";
@@ -374,6 +375,12 @@ function App() {
           </Modal>
         </div>
       </div>
+      <h3 className="leading-relaxed text-base text-center text-gray-500">
+        <a href="https://github.com/klimeryk/dealwithit" target="_blank">
+          <GithubOutlined className="mr-1" />
+          View source code on GitHub
+        </a>
+      </h3>
     </>
   );
 }
