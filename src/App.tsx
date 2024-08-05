@@ -125,9 +125,11 @@ function App() {
 
   function renderFileInput() {
     const props: UploadProps = {
+      className: "flex flex-1",
       name: "file",
       multiple: false,
       accept: "image/png, image/jpeg",
+      showUploadList: false,
       customRequest: async (info) => {
         const selectedFile = info.file as File;
         setInputFile(selectedFile);
@@ -154,6 +156,7 @@ function App() {
         <p className="ant-upload-text">
           Click or drag file to this area to upload
         </p>
+        <p className="ant-upload-hint">Works best with square images!</p>
       </Dragger>
     );
   }
@@ -337,10 +340,10 @@ function App() {
         {contextHolder}
         <div className="relative p-10 bg-white shadow-lg sm:rounded-3xl">
           <div className="grid grid-cols-2 gap-4">
-            <>
+            <div>
               {status === "START" && renderFileInput()}
               {status !== "START" && renderInputImage()}
-            </>
+            </div>
             {renderForm()}
           </div>
           <Modal
