@@ -3,7 +3,7 @@ import {
   DeleteOutlined,
   DownloadOutlined,
   FireOutlined,
-  InboxOutlined,
+  SmileOutlined,
 } from "@ant-design/icons";
 import { useDraggable, useDndMonitor } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
@@ -151,7 +151,7 @@ function App() {
     return (
       <Dragger {...props}>
         <p className="ant-upload-drag-icon">
-          <InboxOutlined />
+          <SmileOutlined />
         </p>
         <p className="ant-upload-text">
           Click or drag file to this area to upload
