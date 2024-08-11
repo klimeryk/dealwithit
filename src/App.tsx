@@ -23,11 +23,15 @@ import {
 } from "antd";
 import { saveAs } from "file-saver";
 import party from "party-js";
-import { useMemo, useState, useRef } from "react";
+import { usePostHog } from "posthog-js/react";
+import { useEffect, useMemo, useState, useRef } from "react";
 
 import glassesImageUrl from "./assets/glasses.png";
 
 const { Dragger } = Upload;
+
+const EMOJI_GENERATION_START_MARK = "EmojiGenerationStartMark";
+const EMOJI_GENERATION_END_MARK = "EmojiGenerationEndMark";
 
 const getDataUrl = (file: File): Promise<string> =>
   new Promise((resolve, reject) => {
@@ -59,6 +63,7 @@ function App() {
   });
   const outputImageRef = useRef<null | HTMLImageElement>(null);
   const [mode, setMode] = useState<"NORMAL" | "HEDGEHOG">("NORMAL");
+  const posthog = usePostHog();
 
   const [form] = Form.useForm();
   const lastFrameDelayEnabled = Form.useWatch(
@@ -78,6 +83,8 @@ function App() {
 
   useDndMonitor({
     onDragEnd({ delta }) {
+      posthog?.capture("user_dragged_glasses");
+
       setGlassesCoordinates(({ x, y }) => {
         return {
           x: x + delta.x,
@@ -87,7 +94,26 @@ function App() {
     },
   });
 
+  useEffect(() => {
+    if (mode === "HEDGEHOG") {
+      messageApi.info({
+        content: "Hello fellow hedgehog fan!",
+        icon: <span className="mr-1 text-lg">🦔</span>,
+      });
+    }
+  }, [mode, messageApi]);
+
   gifWorker.onmessage = ({ data }) => {
+    performance.mark(EMOJI_GENERATION_END_MARK);
+    const emojiMeasure = performance.measure(
+      "EmojiGeneration",
+      EMOJI_GENERATION_START_MARK,
+      EMOJI_GENERATION_END_MARK,
+    );
+    posthog?.capture("user_finished_emoji_generation", {
+      duration: emojiMeasure.duration,
+    });
+
     const { gifBlob, resultDataUrl } = data;
     setOutputImage(gifBlob);
     setOutputImageDataUrl(resultDataUrl);
@@ -106,6 +132,12 @@ function App() {
       ["numberOfFrames"],
       ["size"],
     ]);
+
+    posthog?.capture("user_started_emoji_generation", {
+      ...configurationOptions,
+    });
+
+    performance.mark(EMOJI_GENERATION_START_MARK);
 
     gifWorker.postMessage({
       configurationOptions,
@@ -134,15 +166,15 @@ function App() {
       customRequest: async (info) => {
         const selectedFile = info.file as File;
         setInputFile(selectedFile);
-        if (selectedFile.name.match(/(hedgehog|posthog)/gi)) {
-          setMode("HEDGEHOG");
-          messageApi.info({
-            content: "Hello fellow hedgehog fan!",
-            icon: <span className="mr-1 text-lg">🦔</span>,
-          });
-        } else {
-          setMode("NORMAL");
-        }
+        const detectedMode = selectedFile.name.match(/(hedgehog|posthog)/gi)
+          ? "HEDGEHOG"
+          : "NORMAL";
+        setMode(detectedMode);
+
+        posthog?.capture("user_selected_input_file", {
+          mode: detectedMode,
+          fileType: selectedFile.type,
+        });
 
         const selectedFileAsDataUrl = await getDataUrl(selectedFile);
         setInputImageDataUrl(selectedFileAsDataUrl);
@@ -164,6 +196,8 @@ function App() {
 
   function renderInputImage() {
     function handleRemoveInputImage() {
+      posthog?.capture("user_removed_input_image");
+
       setStatus("START");
       setInputImageDataUrl("");
       setInputFile(undefined);
@@ -304,10 +338,12 @@ function App() {
   }
 
   function closeModal() {
+    posthog?.capture("user_closed_download_modal");
     setStatus("READY");
   }
 
   function downloadOutput() {
+    posthog?.capture("user_downloaded_emoji");
     if (outputImage) {
       saveAs(outputImage, "dealwithit.gif");
     }
@@ -316,6 +352,8 @@ function App() {
 
   function onModalOpenChange(open: boolean) {
     if (open && outputImageRef.current) {
+      posthog?.capture("user_opened_download_modal");
+
       if (mode === "HEDGEHOG") {
         const hedgehog = document.createElement("span");
         hedgehog.innerText = "🦔";

@@ -1,5 +1,6 @@
 import { DndContext } from "@dnd-kit/core";
 import { restrictToParentElement } from "@dnd-kit/modifiers";
+import { PostHogProvider } from "posthog-js/react";
 import React from "react";
 import ReactDOM from "react-dom/client";
 
@@ -13,10 +14,21 @@ declare global {
   }
 }
 
+const options = {
+  api_host: "https://jez.emoji.build",
+  ui_host: "https://eu.i.posthog.com",
+  autocapture: false,
+};
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <DndContext modifiers={[restrictToParentElement]}>
-      <App />
-    </DndContext>
-  </React.StrictMode>,
+  <PostHogProvider
+    apiKey="phc_7SZQ8Cl3ymxNbRF8K5OLMO3VOQ51MD8Gnh6UDLU17lG"
+    options={options}
+  >
+    <React.StrictMode>
+      <DndContext modifiers={[restrictToParentElement]}>
+        <App />
+      </DndContext>
+    </React.StrictMode>
+  </PostHogProvider>,
 );
