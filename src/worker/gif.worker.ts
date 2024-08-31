@@ -1,30 +1,35 @@
 import "jimp/browser/lib/jimp.js";
 import type { Jimp } from "@jimp/core";
+import type { Blit } from "@jimp/plugin-blit";
 import type { ResizeClass } from "@jimp/plugin-resize";
 import { BitmapImage, GifFrame, GifCodec, GifUtil } from "gifwrap";
 
 const { Jimp } = self;
 
-const DEFAULT_IMAGE_SIZE = 160;
+let glassesImage: Jimp & ResizeClass & Blit;
 
-let glassesImage: Jimp & ResizeClass;
+function getResizedImage(image: Jimp & ResizeClass & Blit, size: number) {
+  const isImageLong = image.bitmap.width >= image.bitmap.height;
+  const width = isImageLong ? size : Jimp.AUTO;
+  const height = isImageLong ? Jimp.AUTO : size;
+
+  return image.clone().resize(width, height, Jimp.RESIZE_BICUBIC);
+}
 
 self.onmessage = (event: MessageEvent) => {
-  const { configurationOptions, glasses, inputFile } = event.data;
+  const { configurationOptions, glasses, inputFile, inputImage } = event.data;
   const { looping, lastFrameDelay, frameDelay, numberOfFrames, size } =
     configurationOptions;
   const { x, y, url: glassesImageUrl } = glasses;
+  const { renderedWidth, renderedHeight } = inputImage;
   const reader = new FileReader();
   reader.onload = async () => {
     if (!glassesImage) {
       glassesImage = await Jimp.read(glassesImageUrl);
     }
     const originalImage = await Jimp.read(reader.result as Buffer);
-    const image = originalImage.resize(
-      size.width,
-      size.height,
-      Jimp.RESIZE_BICUBIC,
-    );
+    const image = getResizedImage(originalImage, size);
+    const { width, height } = image.bitmap;
 
     function getNumberOfLoops() {
       if (looping.mode === "infinite") {
@@ -52,9 +57,9 @@ self.onmessage = (event: MessageEvent) => {
     const frames = [];
     const scaledGlassesImage = glassesImage
       .clone()
-      .resize(size.width / 2, Jimp.AUTO, Jimp.RESIZE_BICUBIC);
-    const scaledX = (size.height / DEFAULT_IMAGE_SIZE) * x;
-    const scaledY = (size.width / DEFAULT_IMAGE_SIZE) * y;
+      .resize(width / 2, Jimp.AUTO, Jimp.RESIZE_BICUBIC);
+    const scaledX = (width / renderedWidth) * x;
+    const scaledY = (height / renderedHeight) * y;
     const yMovementPerFrame = scaledY / numberOfFrames;
     for (let frameNumber = 0; frameNumber < numberOfFrames; ++frameNumber) {
       const jimpFrame = image

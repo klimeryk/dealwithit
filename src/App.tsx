@@ -61,6 +61,7 @@ function App() {
     x: 35,
     y: 54,
   });
+  const inputImageRef = useRef<null | HTMLImageElement>(null);
   const outputImageRef = useRef<null | HTMLImageElement>(null);
   const [mode, setMode] = useState<"NORMAL" | "HEDGEHOG">("NORMAL");
   const posthog = usePostHog();
@@ -121,7 +122,7 @@ function App() {
   };
 
   function generateOutputImage() {
-    if (!inputFile) {
+    if (!inputFile || !inputImageRef.current) {
       return;
     }
 
@@ -142,6 +143,10 @@ function App() {
     gifWorker.postMessage({
       configurationOptions,
       glasses: { x, y, url: glassesImageUrl },
+      inputImage: {
+        renderedWidth: inputImageRef.current.width,
+        renderedHeight: inputImageRef.current.height,
+      },
       inputFile,
     });
 
@@ -189,7 +194,6 @@ function App() {
         <p className="ant-upload-text">
           Click or drag file to this area to upload
         </p>
-        <p className="ant-upload-hint">Works best with square images!</p>
       </Dragger>
     );
   }
@@ -212,7 +216,7 @@ function App() {
     return (
       <div className="flex flex-col gap-2 items-center">
         <div className="relative">
-          <img className="size-40" src={inputImageDataUrl} />
+          <img ref={inputImageRef} src={inputImageDataUrl} />
           <img
             className="absolute w-1/2 left-0 top-0 hover:cursor-move"
             src={glassesImageUrl}
@@ -249,7 +253,7 @@ function App() {
           frameDelay: 100,
           lastFrameDelay: { enabled: true, value: 1000 },
           looping: { mode: "infinite", loops: 5 },
-          size: { width: 160, height: 160 },
+          size: 160,
         }}
       >
         <Form.Item label="Loops" name={["looping", "mode"]}>
@@ -311,16 +315,9 @@ function App() {
           </Space>
         </Form.Item>
         <Form.Item
-          label="Width"
-          tooltip="Width of the output GIF"
-          name={["size", "width"]}
-        >
-          <InputNumber addonAfter="px" style={{ width: "100%" }} min={1} />
-        </Form.Item>
-        <Form.Item
-          label="Height"
-          tooltip="Height of the output GIF"
-          name={["size", "height"]}
+          label="Largest dimension (width or height)"
+          tooltip="The largest dimension of the output image - either width or height, depending on the aspect ratio."
+          name="size"
         >
           <InputNumber addonAfter="px" style={{ width: "100%" }} min={1} />
         </Form.Item>
