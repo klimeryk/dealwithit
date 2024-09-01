@@ -4,6 +4,8 @@ import {
   DownloadOutlined,
   FireOutlined,
   GithubOutlined,
+  MoonOutlined,
+  SunOutlined,
   SmileOutlined,
 } from "@ant-design/icons";
 import { useDraggable, useDndMonitor } from "@dnd-kit/core";
@@ -11,6 +13,7 @@ import { CSS } from "@dnd-kit/utilities";
 import type { Coordinates } from "@dnd-kit/utilities";
 import type { UploadProps } from "antd";
 import {
+  ConfigProvider,
   Form,
   Radio,
   Switch,
@@ -20,6 +23,7 @@ import {
   Upload,
   Modal,
   message,
+  theme,
 } from "antd";
 import { saveAs } from "file-saver";
 import party from "party-js";
@@ -33,13 +37,29 @@ const { Dragger } = Upload;
 const EMOJI_GENERATION_START_MARK = "EmojiGenerationStartMark";
 const EMOJI_GENERATION_END_MARK = "EmojiGenerationEndMark";
 
-const getDataUrl = (file: File): Promise<string> =>
-  new Promise((resolve, reject) => {
+function getDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onload = () => resolve(reader.result as string);
     reader.onerror = (error) => reject(error);
   });
+}
+
+function getInitialThemeModePreference() {
+  const savedThemeMode = localStorage.getItem("theme");
+  if (savedThemeMode) {
+    return savedThemeMode;
+  }
+
+  if (window.matchMedia) {
+    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      return "dark";
+    }
+  }
+
+  return window.getComputedStyle(document.documentElement).content;
+}
 
 function App() {
   const gifWorker = useMemo(
@@ -103,6 +123,17 @@ function App() {
       });
     }
   }, [mode, messageApi]);
+
+  const [themeMode, setThemeMode] = useState(getInitialThemeModePreference());
+  useEffect(() => {
+    if (themeMode === "dark") {
+      localStorage.setItem("theme", "dark");
+      document.documentElement.classList.add("dark");
+    } else {
+      localStorage.setItem("theme", "light");
+      document.documentElement.classList.remove("dark");
+    }
+  }, [themeMode]);
 
   gifWorker.onmessage = ({ data }) => {
     performance.mark(EMOJI_GENERATION_END_MARK);
@@ -347,6 +378,10 @@ function App() {
     closeModal();
   }
 
+  function toggleThemeMode() {
+    setThemeMode(themeMode === "dark" ? "light" : "dark");
+  }
+
   function onModalOpenChange(open: boolean) {
     if (open && outputImageRef.current) {
       posthog?.capture("user_opened_download_modal");
@@ -366,7 +401,20 @@ function App() {
   }
 
   return (
-    <>
+    <ConfigProvider
+      theme={{
+        algorithm:
+          themeMode === "dark" ? theme.darkAlgorithm : theme.defaultAlgorithm,
+      }}
+    >
+      <Button
+        className="absolute top-0 right-0 mr-2 mt-2"
+        type="dashed"
+        icon={themeMode === "dark" ? <MoonOutlined /> : <SunOutlined />}
+        onClick={toggleThemeMode}
+      >
+        {themeMode === "dark" ? "Dark" : "Light"} mode
+      </Button>
       <div className="flex w-full items-center justify-center">
         <span className="absolute mx-auto py-4 flex border w-fit bg-gradient-to-r blur-xl from-blue-500 via-teal-500 to-pink-500 bg-clip-text text-6xl box-content font-extrabold text-transparent text-center select-none">
           Deal With It GIF emoji generator
@@ -380,7 +428,7 @@ function App() {
       </h3>
       <div className="relative py-3 sm:max-w-xl sm:mx-auto">
         {contextHolder}
-        <div className="relative p-10 bg-white shadow-lg sm:rounded-3xl">
+        <div className="relative p-10 bg-white dark:bg-slate-900 shadow-lg sm:rounded-3xl">
           <div className="grid grid-cols-2 gap-4">
             <div>
               {status === "START" && renderFileInput()}
@@ -416,7 +464,7 @@ function App() {
           View source code on GitHub
         </a>
       </h3>
-    </>
+    </ConfigProvider>
   );
 }
 
