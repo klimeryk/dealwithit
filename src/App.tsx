@@ -270,7 +270,6 @@ function App() {
   function renderForm() {
     return (
       <Form
-        className="w-40"
         form={form}
         layout="vertical"
         disabled={status === "START"}
@@ -415,8 +414,8 @@ function App() {
       <div className="relative py-3 sm:max-w-xl sm:mx-auto">
         {contextHolder}
         <div className="relative p-10 bg-white dark:bg-slate-900 shadow-lg sm:rounded-3xl">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="col-span-2">
               {status === "START" && renderFileInput()}
               {status !== "START" && renderInputImage()}
             </div>
