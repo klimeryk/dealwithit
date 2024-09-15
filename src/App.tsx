@@ -16,6 +16,7 @@ import {
   Switch,
   InputNumber,
   Button,
+  Progress,
   Space,
   Upload,
   Modal,
@@ -27,6 +28,7 @@ import { usePostHog } from "posthog-js/react";
 import { useEffect, useMemo, useState, useRef } from "react";
 
 import glassesImageUrl from "./assets/glasses.png";
+import { getNumberOfSteps } from "./lib/utils.ts";
 
 const { Dragger } = Upload;
 
@@ -73,6 +75,10 @@ function App() {
     form,
   );
   const numberOfLoops = Form.useWatch(["looping", "loops"], form);
+  const numberOfFrames = Form.useWatch("numberOfFrames", form);
+
+  const [progressState, setProgressState] = useState(0);
+  const numberOfSteps = getNumberOfSteps(numberOfFrames);
 
   const {
     attributes,
@@ -106,6 +112,12 @@ function App() {
   }, [mode, messageApi]);
 
   gifWorker.onmessage = ({ data }) => {
+    if (data.type === "PROGRESS") {
+      setProgressState(Math.round(data.progress));
+      console.log(data);
+      return;
+    }
+
     performance.mark(EMOJI_GENERATION_END_MARK);
     const emojiMeasure = performance.measure(
       "EmojiGeneration",
@@ -151,6 +163,7 @@ function App() {
       inputFile,
     });
 
+    setProgressState(0);
     setStatus("GENERATING");
   }
 
@@ -346,6 +359,9 @@ function App() {
         >
           Deal with it!
         </Button>
+        {status === "GENERATING" && (
+          <Progress percent={progressState} steps={numberOfSteps} size={5} />
+        )}
       </Form>
     );
   }

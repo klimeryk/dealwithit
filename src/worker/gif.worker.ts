@@ -4,6 +4,8 @@ import type { Blit } from "@jimp/plugin-blit";
 import type { ResizeClass } from "@jimp/plugin-resize";
 import { BitmapImage, GifFrame, GifCodec, GifUtil } from "gifwrap";
 
+import { getNumberOfSteps } from "../lib/utils.ts";
+
 const { Jimp } = self;
 
 let glassesImage: Jimp & ResizeClass & Blit;
@@ -23,12 +25,25 @@ self.onmessage = (event: MessageEvent) => {
   const { x, y, url: glassesImageUrl } = glasses;
   const { renderedWidth, renderedHeight } = inputImage;
   const reader = new FileReader();
+
+  let stepNumber = 0;
+  const numberOfSteps = getNumberOfSteps(numberOfFrames);
+  function reportProgress() {
+    ++stepNumber;
+    self.postMessage({
+      type: "PROGRESS",
+      progress: (stepNumber / numberOfSteps) * 100,
+    });
+  }
+
   reader.onload = async () => {
     if (!glassesImage) {
       glassesImage = await Jimp.read(glassesImageUrl);
     }
     const originalImage = await Jimp.read(reader.result as Buffer);
+    reportProgress();
     const image = getResizedImage(originalImage, size);
+    reportProgress();
     const { width, height } = image.bitmap;
 
     function getNumberOfLoops() {
@@ -58,6 +73,7 @@ self.onmessage = (event: MessageEvent) => {
     const scaledGlassesImage = glassesImage
       .clone()
       .resize(width / 2, Jimp.AUTO, Jimp.RESIZE_BICUBIC);
+    reportProgress();
     const scaledX = (width / renderedWidth) * x;
     const scaledY = (height / renderedHeight) * y;
     const yMovementPerFrame = scaledY / numberOfFrames;
@@ -71,6 +87,7 @@ self.onmessage = (event: MessageEvent) => {
         delayCentisecs: Math.round(frameDelay / 10),
       });
       frames.push(frame);
+      reportProgress();
     }
 
     const jimpFrame = image
@@ -82,6 +99,7 @@ self.onmessage = (event: MessageEvent) => {
       delayCentisecs: getLastFrameDelay(),
     });
     frames.push(frame);
+    reportProgress();
 
     const codec = new GifCodec();
     const gif = await codec.encodeGif(frames, { loops: getNumberOfLoops() });
@@ -89,7 +107,11 @@ self.onmessage = (event: MessageEvent) => {
 
     const fileReader = new FileReader();
     fileReader.onload = () => {
-      self.postMessage({ gifBlob, resultDataUrl: fileReader.result as string });
+      self.postMessage({
+        type: "OUTPUT",
+        gifBlob,
+        resultDataUrl: fileReader.result as string,
+      });
     };
     fileReader.readAsDataURL(gifBlob);
   };
