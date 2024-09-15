@@ -208,6 +208,17 @@ function App() {
       setInputFile(undefined);
     }
 
+    function handleInputImageError() {
+      messageApi.warning(
+        "The file could not be loaded - make sure it's a valid image file.",
+      );
+      posthog?.capture("user_uploaded_invalid_input_image");
+
+      setStatus("START");
+      setInputImageDataUrl("");
+      setInputFile(undefined);
+    }
+
     const style = {
       transform: CSS.Translate.toString(transform),
       left: x,
@@ -217,7 +228,11 @@ function App() {
     return (
       <div className="flex flex-col gap-2 items-center">
         <div className="relative">
-          <img ref={inputImageRef} src={inputImageDataUrl} />
+          <img
+            ref={inputImageRef}
+            src={inputImageDataUrl}
+            onError={handleInputImageError}
+          />
           <img
             className="absolute w-1/2 left-0 top-0 hover:cursor-move"
             src={glassesImageUrl}
