@@ -28,7 +28,7 @@ import { usePostHog } from "posthog-js/react";
 import { useEffect, useMemo, useState, useRef } from "react";
 
 import glassesImageUrl from "./assets/glasses.png";
-import { getNumberOfSteps } from "./lib/utils.ts";
+import { generateOutputFilename } from "./lib/utils.ts";
 
 const { Dragger } = Upload;
 
@@ -75,10 +75,8 @@ function App() {
     form,
   );
   const numberOfLoops = Form.useWatch(["looping", "loops"], form);
-  const numberOfFrames = Form.useWatch("numberOfFrames", form);
 
   const [progressState, setProgressState] = useState(0);
-  const numberOfSteps = getNumberOfSteps(numberOfFrames);
 
   const {
     attributes,
@@ -359,7 +357,11 @@ function App() {
           Deal with it!
         </Button>
         {status === "GENERATING" && (
-          <Progress percent={progressState} steps={numberOfSteps} size={5} />
+          <Progress
+            percent={progressState}
+            showInfo={false}
+            strokeColor={{ from: "#108ee9", to: "#87d068" }}
+          />
         )}
       </Form>
     );
@@ -372,8 +374,8 @@ function App() {
 
   function downloadOutput() {
     posthog?.capture("user_downloaded_emoji");
-    if (outputImage) {
-      saveAs(outputImage, "dealwithit.gif");
+    if (outputImage && inputFile) {
+      saveAs(outputImage, generateOutputFilename(inputFile));
     }
     closeModal();
   }

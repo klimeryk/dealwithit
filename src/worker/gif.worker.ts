@@ -96,6 +96,7 @@ self.onmessage = (event: MessageEvent) => {
     const codec = new GifCodec();
     const gif = await codec.encodeGif(frames, { loops: getNumberOfLoops() });
     const gifBlob = new File([gif.buffer], "", { type: "image/gif" });
+    reportProgress();
 
     const fileReader = new FileReader();
     fileReader.onload = () => {
