@@ -114,7 +114,6 @@ function App() {
   gifWorker.onmessage = ({ data }) => {
     if (data.type === "PROGRESS") {
       setProgressState(Math.round(data.progress));
-      console.log(data);
       return;
     }
 

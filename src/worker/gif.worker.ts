@@ -4,7 +4,7 @@ import type { Blit } from "@jimp/plugin-blit";
 import type { ResizeClass } from "@jimp/plugin-resize";
 import { BitmapImage, GifFrame, GifCodec, GifUtil } from "gifwrap";
 
-import { getNumberOfSteps } from "../lib/utils.ts";
+import { prepareReportProgress } from "./utils.ts";
 
 const { Jimp } = self;
 
@@ -26,15 +26,7 @@ self.onmessage = (event: MessageEvent) => {
   const { renderedWidth, renderedHeight } = inputImage;
   const reader = new FileReader();
 
-  let stepNumber = 0;
-  const numberOfSteps = getNumberOfSteps(numberOfFrames);
-  function reportProgress() {
-    ++stepNumber;
-    self.postMessage({
-      type: "PROGRESS",
-      progress: (stepNumber / numberOfSteps) * 100,
-    });
-  }
+  const reportProgress = prepareReportProgress(numberOfFrames);
 
   reader.onload = async () => {
     if (!glassesImage) {
