@@ -1,5 +1,3 @@
-import { DndContext } from "@dnd-kit/core";
-import { restrictToParentElement } from "@dnd-kit/modifiers";
 import { PostHogProvider } from "posthog-js/react";
 import React from "react";
 import ReactDOM from "react-dom/client";
@@ -27,11 +25,9 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     options={options}
   >
     <React.StrictMode>
-      <DndContext modifiers={[restrictToParentElement]}>
-        <ThemeSwitcher>
-          <App />
-        </ThemeSwitcher>
-      </DndContext>
+      <ThemeSwitcher>
+        <App />
+      </ThemeSwitcher>
     </React.StrictMode>
   </PostHogProvider>,
 );

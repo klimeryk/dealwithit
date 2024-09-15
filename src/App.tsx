@@ -1,13 +1,13 @@
 import "jimp/browser/lib/jimp.js";
 import {
-  DeleteOutlined,
   DownloadOutlined,
   FireOutlined,
   GithubOutlined,
   SmileOutlined,
 } from "@ant-design/icons";
-import { useDraggable, useDndMonitor } from "@dnd-kit/core";
-import { CSS } from "@dnd-kit/utilities";
+import { DndContext } from "@dnd-kit/core";
+import type { DragEndEvent } from "@dnd-kit/core";
+import { restrictToParentElement } from "@dnd-kit/modifiers";
 import type { Coordinates } from "@dnd-kit/utilities";
 import type { UploadProps } from "antd";
 import {
@@ -28,8 +28,7 @@ import { usePostHog } from "posthog-js/react";
 import { useEffect, useMemo, useState, useRef } from "react";
 
 import glassesImageUrl from "./assets/glasses.png";
-import FlipH from "./icons/FlipH.tsx";
-import FlipV from "./icons/FlipV.tsx";
+import InputImage from "./InputImage.tsx";
 import { generateOutputFilename } from "./lib/utils.ts";
 
 const { Dragger } = Upload;
@@ -83,28 +82,6 @@ function App() {
   const numberOfLoops = Form.useWatch(["looping", "loops"], form);
 
   const [progressState, setProgressState] = useState(0);
-
-  const {
-    attributes,
-    listeners,
-    setNodeRef: setDraggableRef,
-    transform,
-  } = useDraggable({
-    id: "glassesDraggable",
-  });
-
-  useDndMonitor({
-    onDragEnd({ delta }) {
-      posthog?.capture("user_dragged_glasses");
-
-      setGlassesCoordinates(({ x, y }) => {
-        return {
-          x: x + delta.x,
-          y: y + delta.y,
-        };
-      });
-    },
-  });
 
   useEffect(() => {
     if (mode === "HEDGEHOG") {
@@ -223,6 +200,7 @@ function App() {
       setStatus("START");
       setInputImageDataUrl("");
       setInputFile(undefined);
+      setImageOptions({ flipVertically: false, flipHorizontally: false });
     }
 
     function handleInputImageError() {
@@ -250,70 +228,32 @@ function App() {
       );
     }
 
-    let imageTransform = "";
-    if (imageOptions.flipVertically) {
-      imageTransform += "scaleY(-1) ";
-    }
-    if (imageOptions.flipHorizontally) {
-      imageTransform += "scaleX(-1) ";
-    }
+    function handleDragEnd({ delta }: DragEndEvent) {
+      posthog?.capture("user_dragged_glasses");
 
-    const imageStyle = {
-      transform: imageTransform,
-    };
-
-    const glassesStyle = {
-      transform: CSS.Translate.toString(transform),
-      left: x,
-      top: y,
-    };
+      setGlassesCoordinates(({ x, y }) => {
+        return {
+          x: x + delta.x,
+          y: y + delta.y,
+        };
+      });
+    }
 
     return (
-      <div className="flex flex-col gap-2 items-center">
-        <div className="relative">
-          <img
-            style={imageStyle}
-            ref={inputImageRef}
-            src={inputImageDataUrl}
-            onError={handleInputImageError}
-          />
-          <img
-            className="absolute w-1/2 left-0 top-0 hover:cursor-move"
-            src={glassesImageUrl}
-            ref={setDraggableRef}
-            style={glassesStyle}
-            {...listeners}
-            {...attributes}
-          />
-        </div>
-        <div className="flex justify-between w-full">
-          <div className="flex gap-2">
-            <Button
-              title="Flip image horizontally"
-              size="small"
-              icon={<FlipH />}
-              data-field="flipHorizontally"
-              onClick={handleImageOptionsChange}
-            />
-            <Button
-              title="Flip image vertically"
-              size="small"
-              icon={<FlipV />}
-              data-field="flipVertically"
-              onClick={handleImageOptionsChange}
-            />
-          </div>
-          <Button
-            type="dashed"
-            danger
-            size="small"
-            icon={<DeleteOutlined />}
-            onClick={handleRemoveInputImage}
-          >
-            Remove image
-          </Button>
-        </div>
-      </div>
+      <DndContext
+        onDragEnd={handleDragEnd}
+        modifiers={[restrictToParentElement]}
+      >
+        <InputImage
+          imageOptions={imageOptions}
+          inputImageDataUrl={inputImageDataUrl}
+          inputImageRef={inputImageRef}
+          glassesCoordinates={{ x, y }}
+          onInputImageError={handleInputImageError}
+          onImageOptionsChange={handleImageOptionsChange}
+          onRemoveInputImage={handleRemoveInputImage}
+        />
+      </DndContext>
     );
   }
 
