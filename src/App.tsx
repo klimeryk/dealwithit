@@ -348,6 +348,7 @@ function App() {
           <InputNumber addonAfter="px" style={{ width: "100%" }} min={1} />
         </Form.Item>
         <Button
+          block
           type="primary"
           size="large"
           onClick={generateOutputImage}
