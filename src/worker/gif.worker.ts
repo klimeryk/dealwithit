@@ -10,16 +10,33 @@ const { Jimp } = self;
 
 let glassesImage: Jimp & ResizeClass & Blit;
 
-function getResizedImage(image: Jimp & ResizeClass & Blit, size: number) {
+function getProcessedImage(
+  image: Jimp & ResizeClass & Blit,
+  size: number,
+  imageOptions: ImageOptions,
+) {
   const isImageLong = image.bitmap.width >= image.bitmap.height;
   const width = isImageLong ? size : Jimp.AUTO;
   const height = isImageLong ? Jimp.AUTO : size;
 
-  return image.clone().resize(width, height, Jimp.RESIZE_BICUBIC);
+  const processedImage = image
+    .clone()
+    .resize(width, height, Jimp.RESIZE_BICUBIC);
+
+  if (imageOptions.flipHorizontally || imageOptions.flipVertically) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (processedImage as any).flip(
+      imageOptions.flipHorizontally,
+      imageOptions.flipVertically,
+    );
+  }
+
+  return processedImage;
 }
 
 self.onmessage = (event: MessageEvent) => {
-  const { configurationOptions, glasses, inputFile, inputImage } = event.data;
+  const { configurationOptions, glasses, inputFile, inputImage, imageOptions } =
+    event.data;
   const { looping, lastFrameDelay, frameDelay, numberOfFrames, size } =
     configurationOptions;
   const { x, y, url: glassesImageUrl } = glasses;
@@ -34,7 +51,7 @@ self.onmessage = (event: MessageEvent) => {
     }
     const originalImage = await Jimp.read(reader.result as Buffer);
     reportProgress();
-    const image = getResizedImage(originalImage, size);
+    const image = getProcessedImage(originalImage, size, imageOptions);
     reportProgress();
     const { width, height } = image.bitmap;
 

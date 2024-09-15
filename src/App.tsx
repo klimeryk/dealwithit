@@ -28,6 +28,8 @@ import { usePostHog } from "posthog-js/react";
 import { useEffect, useMemo, useState, useRef } from "react";
 
 import glassesImageUrl from "./assets/glasses.png";
+import FlipH from "./icons/FlipH.tsx";
+import FlipV from "./icons/FlipV.tsx";
 import { generateOutputFilename } from "./lib/utils.ts";
 
 const { Dragger } = Upload;
@@ -63,6 +65,10 @@ function App() {
   const [{ x, y }, setGlassesCoordinates] = useState<Coordinates>({
     x: 35,
     y: 54,
+  });
+  const [imageOptions, setImageOptions] = useState<ImageOptions>({
+    flipVertically: false,
+    flipHorizontally: false,
   });
   const inputImageRef = useRef<null | HTMLImageElement>(null);
   const outputImageRef = useRef<null | HTMLImageElement>(null);
@@ -153,6 +159,7 @@ function App() {
     gifWorker.postMessage({
       configurationOptions,
       glasses: { x, y, url: glassesImageUrl },
+      imageOptions,
       inputImage: {
         renderedWidth: inputImageRef.current.width,
         renderedHeight: inputImageRef.current.height,
@@ -229,7 +236,33 @@ function App() {
       setInputFile(undefined);
     }
 
-    const style = {
+    function handleImageOptionsChange(
+      event: React.MouseEvent<HTMLElement, MouseEvent>,
+    ) {
+      const field = event.currentTarget.dataset.field as string;
+      function getNewValue() {
+        if (field === "flipVertically" || field === "flipHorizontally") {
+          return !imageOptions[field];
+        }
+      }
+      setImageOptions(
+        Object.assign({}, imageOptions, { [field as string]: getNewValue() }),
+      );
+    }
+
+    let imageTransform = "";
+    if (imageOptions.flipVertically) {
+      imageTransform += "scaleY(-1) ";
+    }
+    if (imageOptions.flipHorizontally) {
+      imageTransform += "scaleX(-1) ";
+    }
+
+    const imageStyle = {
+      transform: imageTransform,
+    };
+
+    const glassesStyle = {
       transform: CSS.Translate.toString(transform),
       left: x,
       top: y,
@@ -239,6 +272,7 @@ function App() {
       <div className="flex flex-col gap-2 items-center">
         <div className="relative">
           <img
+            style={imageStyle}
             ref={inputImageRef}
             src={inputImageDataUrl}
             onError={handleInputImageError}
@@ -247,12 +281,28 @@ function App() {
             className="absolute w-1/2 left-0 top-0 hover:cursor-move"
             src={glassesImageUrl}
             ref={setDraggableRef}
-            style={style}
+            style={glassesStyle}
             {...listeners}
             {...attributes}
           />
         </div>
-        <div>
+        <div className="flex justify-between w-full">
+          <div className="flex gap-2">
+            <Button
+              title="Flip image horizontally"
+              size="small"
+              icon={<FlipH />}
+              data-field="flipHorizontally"
+              onClick={handleImageOptionsChange}
+            />
+            <Button
+              title="Flip image vertically"
+              size="small"
+              icon={<FlipV />}
+              data-field="flipVertically"
+              onClick={handleImageOptionsChange}
+            />
+          </div>
           <Button
             type="dashed"
             danger
