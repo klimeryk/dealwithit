@@ -8,7 +8,6 @@ import {
 import { DndContext } from "@dnd-kit/core";
 import type { DragEndEvent } from "@dnd-kit/core";
 import { restrictToParentElement } from "@dnd-kit/modifiers";
-import type { Coordinates } from "@dnd-kit/utilities";
 import type { UploadProps } from "antd";
 import {
   Form,
@@ -23,12 +22,14 @@ import {
   message,
 } from "antd";
 import { saveAs } from "file-saver";
+import { nanoid } from "nanoid";
 import party from "party-js";
 import { usePostHog } from "posthog-js/react";
 import { useEffect, useMemo, useState, useRef } from "react";
 
 import glassesImageUrl from "./assets/glasses.png";
 import InputImage from "./InputImage.tsx";
+import { byId } from "./lib/id-utils.ts";
 import { generateOutputFilename } from "./lib/utils.ts";
 
 const { Dragger } = Upload;
@@ -61,10 +62,15 @@ function App() {
   const [inputImageDataUrl, setInputImageDataUrl] = useState("");
   const [outputImage, setOutputImage] = useState<Blob>();
   const [outputImageDataUrl, setOutputImageDataUrl] = useState("");
-  const [{ x, y }, setGlassesCoordinates] = useState<Coordinates>({
-    x: 35,
-    y: 54,
-  });
+  const [glassesList, setGlassesList] = useState<Glasses[]>([
+    {
+      id: nanoid(),
+      coordinates: {
+        x: 35,
+        y: 54,
+      },
+    },
+  ]);
   const [imageOptions, setImageOptions] = useState<ImageOptions>({
     flipVertically: false,
     flipHorizontally: false,
@@ -135,7 +141,7 @@ function App() {
 
     gifWorker.postMessage({
       configurationOptions,
-      glasses: { x, y, url: glassesImageUrl },
+      glasses: { glassesList, url: glassesImageUrl },
       imageOptions,
       inputImage: {
         renderedWidth: inputImageRef.current.width,
@@ -228,14 +234,21 @@ function App() {
       );
     }
 
-    function handleDragEnd({ delta }: DragEndEvent) {
+    function handleDragEnd({ delta, active }: DragEndEvent) {
       posthog?.capture("user_dragged_glasses");
 
-      setGlassesCoordinates(({ x, y }) => {
-        return {
+      setGlassesList((currentGlassesList) => {
+        const index = currentGlassesList.findIndex(byId(active.id as nanoId));
+        if (index === -1) {
+          return currentGlassesList;
+        }
+        const newGlassesList = [...currentGlassesList];
+        const { x, y } = newGlassesList[index].coordinates;
+        newGlassesList[index].coordinates = {
           x: x + delta.x,
           y: y + delta.y,
         };
+        return newGlassesList;
       });
     }
 
@@ -248,7 +261,7 @@ function App() {
           imageOptions={imageOptions}
           inputImageDataUrl={inputImageDataUrl}
           inputImageRef={inputImageRef}
-          glassesCoordinates={{ x, y }}
+          glassesList={glassesList}
           onInputImageError={handleInputImageError}
           onImageOptionsChange={handleImageOptionsChange}
           onRemoveInputImage={handleRemoveInputImage}

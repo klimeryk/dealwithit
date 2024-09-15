@@ -17,6 +17,7 @@
     "file-saver": "^2.0.5",
     "gifwrap": "^0.10.1",
     "jimp": "^0.22.12",
+    "nanoid": "^5.0.7",
     "party-js": "^2.2.0",
     "posthog-js": "^1.155.0",
     "react": "^18.3.1",

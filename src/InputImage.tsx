@@ -1,10 +1,7 @@
 import { DeleteOutlined } from "@ant-design/icons";
-import { useDraggable } from "@dnd-kit/core";
-import { CSS } from "@dnd-kit/utilities";
-import type { Coordinates } from "@dnd-kit/utilities";
 import { Button } from "antd";
 
-import glassesImageUrl from "./assets/glasses.png";
+import GlassesDraggable from "./GlassesDraggable.tsx";
 import FlipH from "./icons/FlipH.tsx";
 import FlipV from "./icons/FlipV.tsx";
 
@@ -18,7 +15,7 @@ interface InputImageProps {
   imageOptions: ImageOptions;
   inputImageDataUrl: string;
   inputImageRef: React.RefObject<HTMLImageElement>;
-  glassesCoordinates: Coordinates;
+  glassesList: Glasses[];
 }
 
 function InputImage({
@@ -28,17 +25,8 @@ function InputImage({
   imageOptions,
   inputImageDataUrl,
   inputImageRef,
-  glassesCoordinates,
+  glassesList,
 }: InputImageProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef: setDraggableRef,
-    transform,
-  } = useDraggable({
-    id: "glassesDraggable",
-  });
-
   let imageTransform = "";
   if (imageOptions.flipVertically) {
     imageTransform += "scaleY(-1) ";
@@ -51,11 +39,9 @@ function InputImage({
     transform: imageTransform,
   };
 
-  const glassesStyle = {
-    transform: CSS.Translate.toString(transform),
-    left: glassesCoordinates.x,
-    top: glassesCoordinates.y,
-  };
+  function renderGlasses(glasses: Glasses) {
+    return <GlassesDraggable key={glasses.id} glasses={glasses} />;
+  }
 
   return (
     <div className="flex flex-col gap-2 items-center">
@@ -66,14 +52,7 @@ function InputImage({
           src={inputImageDataUrl}
           onError={onInputImageError}
         />
-        <img
-          className="absolute w-1/2 left-0 top-0 hover:cursor-move"
-          src={glassesImageUrl}
-          ref={setDraggableRef}
-          style={glassesStyle}
-          {...listeners}
-          {...attributes}
-        />
+        {glassesList.map(renderGlasses)}
       </div>
       <div className="flex justify-between w-full">
         <div className="flex gap-2">

@@ -39,7 +39,7 @@ self.onmessage = (event: MessageEvent) => {
     event.data;
   const { looping, lastFrameDelay, frameDelay, numberOfFrames, size } =
     configurationOptions;
-  const { x, y, url: glassesImageUrl } = glasses;
+  const { glassesList, url: glassesImageUrl } = glasses;
   const { renderedWidth, renderedHeight } = inputImage;
   const reader = new FileReader();
 
@@ -83,13 +83,20 @@ self.onmessage = (event: MessageEvent) => {
       .clone()
       .resize(width / 2, Jimp.AUTO, Jimp.RESIZE_BICUBIC);
     reportProgress();
-    const scaledX = (width / renderedWidth) * x;
-    const scaledY = (height / renderedHeight) * y;
-    const yMovementPerFrame = scaledY / numberOfFrames;
+    const scaleX = width / renderedWidth;
+    const scaleY = height / renderedHeight;
     for (let frameNumber = 0; frameNumber < numberOfFrames; ++frameNumber) {
-      const jimpFrame = image
-        .clone()
-        .blit(scaledGlassesImage, scaledX, frameNumber * yMovementPerFrame);
+      const jimpFrame = image.clone();
+      for (const glassesInstance of glassesList) {
+        const scaledX = scaleX * glassesInstance.coordinates.x;
+        const scaledY = scaleY * glassesInstance.coordinates.y;
+        const yMovementPerFrame = scaledY / numberOfFrames;
+        jimpFrame.blit(
+          scaledGlassesImage,
+          scaledX,
+          frameNumber * yMovementPerFrame,
+        );
+      }
       const jimpBitmap = new BitmapImage(jimpFrame.bitmap);
       GifUtil.quantizeDekker(jimpBitmap, 256);
       const frame = new GifFrame(jimpBitmap, {
@@ -99,9 +106,17 @@ self.onmessage = (event: MessageEvent) => {
       reportProgress();
     }
 
-    const jimpFrame = image
-      .clone()
-      .blit(scaledGlassesImage, scaledX, numberOfFrames * yMovementPerFrame);
+    const jimpFrame = image.clone();
+    for (const glassesInstance of glassesList) {
+      const scaledX = scaleX * glassesInstance.coordinates.x;
+      const scaledY = scaleY * glassesInstance.coordinates.y;
+      const yMovementPerFrame = scaledY / numberOfFrames;
+      jimpFrame.blit(
+        scaledGlassesImage,
+        scaledX,
+        numberOfFrames * yMovementPerFrame,
+      );
+    }
     const jimpBitmap = new BitmapImage(jimpFrame.bitmap);
     GifUtil.quantizeDekker(jimpBitmap, 256);
     const frame = new GifFrame(jimpBitmap, {
