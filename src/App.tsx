@@ -3,13 +3,21 @@ import {
   DownloadOutlined,
   FireOutlined,
   GithubOutlined,
+  PlusCircleOutlined,
   SmileOutlined,
 } from "@ant-design/icons";
-import { DndContext } from "@dnd-kit/core";
+import { closestCenter, DndContext } from "@dnd-kit/core";
 import type { DragEndEvent } from "@dnd-kit/core";
 import { restrictToParentElement } from "@dnd-kit/modifiers";
+import {
+  arrayMove,
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import type { UploadProps } from "antd";
 import {
+  Alert,
+  Card,
   Form,
   Radio,
   Switch,
@@ -31,6 +39,7 @@ import glassesImageUrl from "./assets/glasses.png";
 import InputImage from "./InputImage.tsx";
 import { byId } from "./lib/id-utils.ts";
 import { generateOutputFilename } from "./lib/utils.ts";
+import SortableGlassesItem from "./SortableGlassesItem.tsx";
 
 const { Dragger } = Upload;
 
@@ -252,21 +261,122 @@ function App() {
       });
     }
 
-    return (
-      <DndContext
-        onDragEnd={handleDragEnd}
-        modifiers={[restrictToParentElement]}
-      >
-        <InputImage
-          imageOptions={imageOptions}
-          inputImageDataUrl={inputImageDataUrl}
-          inputImageRef={inputImageRef}
-          glassesList={glassesList}
-          onInputImageError={handleInputImageError}
-          onImageOptionsChange={handleImageOptionsChange}
-          onRemoveInputImage={handleRemoveInputImage}
+    function renderGlassesItem(glasses: Glasses) {
+      function handleRemoveGlasses(
+        event: React.MouseEvent<HTMLElement, MouseEvent>,
+      ) {
+        const id = event.currentTarget.dataset.id as nanoId;
+        const index = glassesList.findIndex(byId(id));
+        if (index === -1) {
+          return;
+        }
+        const newGlassesList = [...glassesList];
+        newGlassesList.splice(index, 1);
+        setGlassesList(newGlassesList);
+      }
+      return (
+        <SortableGlassesItem
+          key={glasses.id}
+          glasses={glasses}
+          onRemove={handleRemoveGlasses}
         />
-      </DndContext>
+      );
+    }
+
+    function handleGlassesItemDragEnd({ active, over }: DragEndEvent) {
+      const oldId = active.id as nanoId;
+      const newId = over?.id as nanoId;
+      const oldIndex = glassesList.findIndex(byId(oldId));
+      const newIndex = glassesList.findIndex(byId(newId));
+      if (oldIndex === -1 || newIndex === -1) {
+        return;
+      }
+      const newGlassesList = arrayMove(glassesList, oldIndex, newIndex);
+      setGlassesList(newGlassesList);
+    }
+
+    function handleAddGlasses() {
+      const newGlassesList = [...glassesList];
+      newGlassesList.push({
+        id: nanoid(),
+        coordinates: {
+          x: 35,
+          y: 55,
+        },
+      });
+      setGlassesList(newGlassesList);
+    }
+
+    const cardStyles = {
+      body: {
+        padding: 0,
+      },
+    };
+
+    return (
+      <>
+        <DndContext
+          onDragEnd={handleDragEnd}
+          modifiers={[restrictToParentElement]}
+        >
+          <InputImage
+            imageOptions={imageOptions}
+            inputImageDataUrl={inputImageDataUrl}
+            inputImageRef={inputImageRef}
+            glassesList={glassesList}
+            onInputImageError={handleInputImageError}
+            onImageOptionsChange={handleImageOptionsChange}
+            onRemoveInputImage={handleRemoveInputImage}
+          />
+        </DndContext>
+        <Card
+          className="mt-2"
+          size="small"
+          title="Glasses"
+          styles={cardStyles}
+          extra={
+            <Button
+              size="small"
+              icon={<PlusCircleOutlined />}
+              onClick={handleAddGlasses}
+            >
+              Add
+            </Button>
+          }
+        >
+          <DndContext
+            collisionDetection={closestCenter}
+            onDragEnd={handleGlassesItemDragEnd}
+          >
+            <SortableContext
+              items={glassesList}
+              strategy={verticalListSortingStrategy}
+            >
+              <ul>
+                {glassesList.map(renderGlassesItem)}
+                {glassesList.length === 0 && (
+                  <Alert
+                    className="rounded-b-md"
+                    banner
+                    message="No glasses!?"
+                    description="How can you deal with it without any glasses? How about adding at least one pair?"
+                    type="warning"
+                    action={
+                      <Button
+                        size="small"
+                        icon={<PlusCircleOutlined />}
+                        onClick={handleAddGlasses}
+                      >
+                        Add
+                      </Button>
+                    }
+                  />
+                )}
+              </ul>
+            </SortableContext>
+          </DndContext>
+        </Card>
+      </>
     );
   }
 
@@ -351,6 +461,7 @@ function App() {
         </Form.Item>
         <Button
           block
+          disabled={glassesList.length === 0}
           type="primary"
           size="large"
           onClick={generateOutputImage}
