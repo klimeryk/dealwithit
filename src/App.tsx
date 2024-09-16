@@ -30,7 +30,6 @@ import {
   message,
 } from "antd";
 import { saveAs } from "file-saver";
-import { nanoid } from "nanoid";
 import party from "party-js";
 import { usePostHog } from "posthog-js/react";
 import { useEffect, useMemo, useState, useRef } from "react";
@@ -38,7 +37,7 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import glassesImageUrl from "./assets/glasses.png";
 import InputImage from "./InputImage.tsx";
 import { byId } from "./lib/id-utils.ts";
-import { generateOutputFilename } from "./lib/utils.ts";
+import { generateOutputFilename, getDefaultGlasses } from "./lib/utils.ts";
 import SortableGlassesItem from "./SortableGlassesItem.tsx";
 
 const { Dragger } = Upload;
@@ -72,13 +71,7 @@ function App() {
   const [outputImage, setOutputImage] = useState<Blob>();
   const [outputImageDataUrl, setOutputImageDataUrl] = useState("");
   const [glassesList, setGlassesList] = useState<Glasses[]>([
-    {
-      id: nanoid(),
-      coordinates: {
-        x: 35,
-        y: 54,
-      },
-    },
+    getDefaultGlasses(),
   ]);
   const [imageOptions, setImageOptions] = useState<ImageOptions>({
     flipVertically: false,
@@ -297,13 +290,7 @@ function App() {
 
     function handleAddGlasses() {
       const newGlassesList = [...glassesList];
-      newGlassesList.push({
-        id: nanoid(),
-        coordinates: {
-          x: 35,
-          y: 55,
-        },
-      });
+      newGlassesList.push(getDefaultGlasses());
       setGlassesList(newGlassesList);
     }
 
@@ -386,13 +373,15 @@ function App() {
         form={form}
         layout="vertical"
         disabled={status === "START"}
-        initialValues={{
-          numberOfFrames: 15,
-          frameDelay: 100,
-          lastFrameDelay: { enabled: true, value: 1000 },
-          looping: { mode: "infinite", loops: 5 },
-          size: 160,
-        }}
+        initialValues={
+          {
+            numberOfFrames: 15,
+            frameDelay: 100,
+            lastFrameDelay: { enabled: true, value: 1000 },
+            looping: { mode: "infinite", loops: 5 },
+            size: 160,
+          } as ConfigurationOptions
+        }
       >
         <Form.Item label="Loops" name={["looping", "mode"]}>
           <Radio.Group>

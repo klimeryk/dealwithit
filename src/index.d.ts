@@ -9,6 +9,27 @@ interface WithNanoId {
   id: nanoId;
 }
 
+type GlassesDirection = "up" | "down" | "right" | "left";
+
 type Glasses = WithNanoId & {
   coordinates: Coordinates;
+  direction: GlassesDirection;
 };
+
+interface LoopingOptions {
+  mode: "infinite" | "off" | "finite";
+  loops: number;
+}
+
+interface ToggleValue<Type> {
+  enabled: boolean;
+  value: Type;
+}
+
+interface ConfigurationOptions {
+  looping: LoopingOptions;
+  lastFrameDelay: ToggleValue<number>;
+  frameDelay: number;
+  numberOfFrames: number;
+  size: number;
+}
