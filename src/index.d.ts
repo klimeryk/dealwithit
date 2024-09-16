@@ -1,7 +1,9 @@
-interface ImageOptions {
+type WithFlip = {
   flipHorizontally: boolean;
   flipVertically: boolean;
-}
+};
+
+type ImageOptions = WithFlip;
 
 type nanoId = string;
 
@@ -11,10 +13,11 @@ interface WithNanoId {
 
 type GlassesDirection = "up" | "down" | "right" | "left";
 
-type Glasses = WithNanoId & {
-  coordinates: Coordinates;
-  direction: GlassesDirection;
-};
+type Glasses = WithFlip &
+  WithNanoId & {
+    coordinates: Coordinates;
+    direction: GlassesDirection;
+  };
 
 interface LoopingOptions {
   mode: "infinite" | "off" | "finite";

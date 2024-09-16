@@ -17,5 +17,22 @@ export function getDefaultGlasses(): Glasses {
       x: 35,
       y: 54,
     },
+    flipHorizontally: false,
+    flipVertically: false,
   };
+}
+
+export function getFlipTransform({
+  flipHorizontally,
+  flipVertically,
+}: WithFlip) {
+  let transform = "";
+  if (flipVertically) {
+    transform += "scaleY(-1) ";
+  }
+  if (flipHorizontally) {
+    transform += "scaleX(-1) ";
+  }
+
+  return transform;
 }

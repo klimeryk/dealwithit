@@ -4,7 +4,12 @@ import type { Blit } from "@jimp/plugin-blit";
 import type { ResizeClass } from "@jimp/plugin-resize";
 import { GifCodec } from "gifwrap";
 
-import { prepareReportProgress, renderGlassesFrame } from "./utils.ts";
+import {
+  getGlassesImages,
+  maybeFlipImage,
+  prepareReportProgress,
+  renderGlassesFrame,
+} from "./utils.ts";
 
 const { Jimp } = self;
 
@@ -22,14 +27,7 @@ function getProcessedImage(
   const processedImage = image
     .clone()
     .resize(width, height, Jimp.RESIZE_BICUBIC);
-
-  if (imageOptions.flipHorizontally || imageOptions.flipVertically) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (processedImage as any).flip(
-      imageOptions.flipHorizontally,
-      imageOptions.flipVertically,
-    );
-  }
+  maybeFlipImage(processedImage, imageOptions);
 
   return processedImage;
 }
@@ -64,9 +62,7 @@ self.onmessage = (event: MessageEvent) => {
     }
 
     const frames = [];
-    const scaledGlassesImage = glassesImage
-      .clone()
-      .resize(width / 2, Jimp.AUTO, Jimp.RESIZE_BICUBIC);
+    const glassesImages = getGlassesImages(glassesList, glassesImage, width);
     reportProgress();
     const scaleX = width / renderedWidth;
     const scaleY = height / renderedHeight;
@@ -74,7 +70,7 @@ self.onmessage = (event: MessageEvent) => {
       frames.push(
         renderGlassesFrame(
           glassesList,
-          scaledGlassesImage,
+          glassesImages,
           image,
           scaleX,
           scaleY,

@@ -267,6 +267,22 @@ function App() {
         newGlassesList[index].direction = direction;
         setGlassesList(newGlassesList);
       }
+      function handleGlassesFlipChange(
+        event: React.MouseEvent<HTMLElement, MouseEvent>,
+      ) {
+        const id = event.currentTarget.dataset.id as nanoId;
+        const index = glassesList.findIndex(byId(id));
+        if (index === -1) {
+          return;
+        }
+        const field = event.currentTarget.dataset.field as string;
+        const newGlassesList = [...glassesList];
+        if (field !== "flipHorizontally" && field !== "flipVertically") {
+          return;
+        }
+        newGlassesList[index][field] = !newGlassesList[index][field];
+        setGlassesList(newGlassesList);
+      }
       function handleRemoveGlasses(
         event: React.MouseEvent<HTMLElement, MouseEvent>,
       ) {
@@ -284,6 +300,7 @@ function App() {
           key={glasses.id}
           glasses={glasses}
           onDirectionChange={handleGlassesDirectionChange}
+          onFlipChange={handleGlassesFlipChange}
           onRemove={handleRemoveGlasses}
         />
       );

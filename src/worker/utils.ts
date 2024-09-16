@@ -1,6 +1,9 @@
 import type { Bitmap, Jimp } from "@jimp/core";
 import type { Blit } from "@jimp/plugin-blit";
+import type { ResizeClass } from "@jimp/plugin-resize";
 import { BitmapImage, GifFrame, GifUtil } from "gifwrap";
+
+const { Jimp } = self;
 
 export function prepareReportProgress(numberOfFrames: number) {
   let stepNumber = 0;
@@ -67,7 +70,7 @@ function getMovementForFrame(
 
 export function renderGlassesFrame(
   glassesList: Glasses[],
-  glassesImage: Jimp,
+  glassesImages: Record<nanoId, Jimp>,
   originalImage: Jimp & Blit,
   scaleX: number,
   scaleY: number,
@@ -82,13 +85,13 @@ export function renderGlassesFrame(
     const movement = getMovementForFrame(
       glasses.direction,
       originalImage.bitmap,
-      glassesImage.bitmap,
+      glassesImages[glasses.id].bitmap,
       scaledX,
       scaledY,
       frameNumber,
       numberOfFrames,
     );
-    jimpFrame.blit(glassesImage, movement.x, movement.y);
+    jimpFrame.blit(glassesImages[glasses.id], movement.x, movement.y);
   }
   const jimpBitmap = new BitmapImage(jimpFrame.bitmap);
   GifUtil.quantizeDekker(jimpBitmap, 256);
@@ -98,4 +101,34 @@ export function renderGlassesFrame(
         ? Math.round(frameDelay / 10)
         : getLastFrameDelay(configurationOptions),
   });
+}
+
+export function maybeFlipImage(
+  image: Jimp,
+  { flipHorizontally, flipVertically }: WithFlip,
+) {
+  if (flipHorizontally || flipVertically) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (image as any).flip(flipHorizontally, flipVertically);
+  }
+
+  return image;
+}
+
+export function getGlassesImages(
+  glassesList: Glasses[],
+  originalGlassesImage: Jimp & ResizeClass,
+  width: number,
+) {
+  return glassesList.reduce(
+    (outputList, glasses) => {
+      const glassesImage = originalGlassesImage
+        .clone()
+        .resize(width / 2, Jimp.AUTO, Jimp.RESIZE_BICUBIC);
+      maybeFlipImage(glassesImage, glasses);
+      outputList[glasses.id] = glassesImage;
+      return outputList;
+    },
+    {} as Record<nanoId, Jimp>,
+  );
 }

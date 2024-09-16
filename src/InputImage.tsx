@@ -4,6 +4,7 @@ import { Button } from "antd";
 import GlassesDraggable from "./GlassesDraggable.tsx";
 import FlipH from "./icons/FlipH.tsx";
 import FlipV from "./icons/FlipV.tsx";
+import { getFlipTransform } from "./lib/utils.ts";
 
 interface InputImageProps {
   onInputImageError: () => void;
@@ -27,16 +28,8 @@ function InputImage({
   inputImageRef,
   glassesList,
 }: InputImageProps) {
-  let imageTransform = "";
-  if (imageOptions.flipVertically) {
-    imageTransform += "scaleY(-1) ";
-  }
-  if (imageOptions.flipHorizontally) {
-    imageTransform += "scaleX(-1) ";
-  }
-
   const imageStyle = {
-    transform: imageTransform,
+    transform: getFlipTransform(imageOptions),
   };
 
   function renderGlasses(glasses: Glasses) {
