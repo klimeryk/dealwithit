@@ -255,6 +255,18 @@ function App() {
     }
 
     function renderGlassesItem(glasses: Glasses) {
+      function handleGlassesDirectionChange(
+        id: nanoId,
+        direction: GlassesDirection,
+      ) {
+        const index = glassesList.findIndex(byId(id));
+        if (index === -1) {
+          return;
+        }
+        const newGlassesList = [...glassesList];
+        newGlassesList[index].direction = direction;
+        setGlassesList(newGlassesList);
+      }
       function handleRemoveGlasses(
         event: React.MouseEvent<HTMLElement, MouseEvent>,
       ) {
@@ -271,6 +283,7 @@ function App() {
         <SortableGlassesItem
           key={glasses.id}
           glasses={glasses}
+          onDirectionChange={handleGlassesDirectionChange}
           onRemove={handleRemoveGlasses}
         />
       );

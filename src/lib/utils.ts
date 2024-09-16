@@ -12,7 +12,7 @@ export function generateOutputFilename(inputFile: File) {
 export function getDefaultGlasses(): Glasses {
   return {
     id: nanoid(),
-    direction: "down",
+    direction: "up",
     coordinates: {
       x: 35,
       y: 54,

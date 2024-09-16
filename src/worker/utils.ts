@@ -1,4 +1,4 @@
-import type { Jimp } from "@jimp/core";
+import type { Bitmap, Jimp } from "@jimp/core";
 import type { Blit } from "@jimp/plugin-blit";
 import { BitmapImage, GifFrame, GifUtil } from "gifwrap";
 
@@ -33,6 +33,38 @@ function getLastFrameDelay({
   );
 }
 
+function getMovementForFrame(
+  direction: GlassesDirection,
+  { width: imageWidth, height: imageHeight }: Bitmap,
+  { width: glassesWidth, height: glassesHeight }: Bitmap,
+  scaledX: number,
+  scaledY: number,
+  frameNumber: number,
+  numberOfFrames: number,
+) {
+  if (direction === "up") {
+    const yMovementPerFrame = (scaledY + glassesHeight) / numberOfFrames;
+    return { x: scaledX, y: frameNumber * yMovementPerFrame - glassesHeight };
+  }
+  if (direction === "down") {
+    const yMovementPerFrame = (imageHeight - scaledY) / numberOfFrames;
+    return {
+      x: scaledX,
+      y: imageHeight - frameNumber * yMovementPerFrame,
+    };
+  }
+  if (direction === "left") {
+    const xMovementPerFrame = (scaledX + glassesWidth) / numberOfFrames;
+    return { x: frameNumber * xMovementPerFrame - glassesWidth, y: scaledY };
+  } else {
+    const xMovementPerFrame = (imageWidth - scaledX) / numberOfFrames;
+    return {
+      x: imageWidth - frameNumber * xMovementPerFrame,
+      y: scaledY,
+    };
+  }
+}
+
 export function renderGlassesFrame(
   glassesList: Glasses[],
   glassesImage: Jimp,
@@ -44,11 +76,19 @@ export function renderGlassesFrame(
 ) {
   const { numberOfFrames, frameDelay } = configurationOptions;
   const jimpFrame = originalImage.clone();
-  for (const glassesInstance of glassesList) {
-    const scaledX = scaleX * glassesInstance.coordinates.x;
-    const scaledY = scaleY * glassesInstance.coordinates.y;
-    const yMovementPerFrame = scaledY / numberOfFrames;
-    jimpFrame.blit(glassesImage, scaledX, frameNumber * yMovementPerFrame);
+  for (const glasses of glassesList) {
+    const scaledX = scaleX * glasses.coordinates.x;
+    const scaledY = scaleY * glasses.coordinates.y;
+    const movement = getMovementForFrame(
+      glasses.direction,
+      originalImage.bitmap,
+      glassesImage.bitmap,
+      scaledX,
+      scaledY,
+      frameNumber,
+      numberOfFrames,
+    );
+    jimpFrame.blit(glassesImage, movement.x, movement.y);
   }
   const jimpBitmap = new BitmapImage(jimpFrame.bitmap);
   GifUtil.quantizeDekker(jimpBitmap, 256);

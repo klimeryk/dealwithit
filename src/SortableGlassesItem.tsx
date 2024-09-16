@@ -1,14 +1,19 @@
 import { DeleteOutlined, HolderOutlined } from "@ant-design/icons";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Button } from "antd";
+import { Button, Select } from "antd";
 
 interface SortableGlassesItemProps {
   glasses: Glasses;
+  onDirectionChange: (id: nanoId, direction: GlassesDirection) => void;
   onRemove: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
 }
 
-function SortableGlassesItem({ glasses, onRemove }: SortableGlassesItemProps) {
+function SortableGlassesItem({
+  glasses,
+  onDirectionChange,
+  onRemove,
+}: SortableGlassesItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: glasses.id });
 
@@ -16,6 +21,29 @@ function SortableGlassesItem({ glasses, onRemove }: SortableGlassesItemProps) {
     transform: CSS.Transform.toString(transform),
     transition,
   };
+
+  function handleDirectionChange(value: GlassesDirection) {
+    onDirectionChange(glasses.id, value);
+  }
+
+  const directionOptions = [
+    {
+      label: "⬇️",
+      value: "up",
+    },
+    {
+      label: "⬆️",
+      value: "down",
+    },
+    {
+      label: "➡️",
+      value: "left",
+    },
+    {
+      label: "⬅️",
+      value: "right",
+    },
+  ];
 
   return (
     <li
@@ -26,7 +54,14 @@ function SortableGlassesItem({ glasses, onRemove }: SortableGlassesItemProps) {
       <div className="flex justify-between w-full">
         <div>
           <HolderOutlined className="me-2" {...attributes} {...listeners} />
-          <span>Glasses</span>
+          <Select
+            data-id={glasses.id}
+            size="small"
+            defaultValue="up"
+            onChange={handleDirectionChange}
+            options={directionOptions}
+            title="Direction from which the glasses should arrive in frame"
+          />
         </div>
         <div>
           <Button
