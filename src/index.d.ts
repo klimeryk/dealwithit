@@ -17,6 +17,7 @@ type Glasses = WithFlip &
   WithNanoId & {
     coordinates: Coordinates;
     direction: GlassesDirection;
+    isSelected: boolean;
   };
 
 interface LoopingOptions {

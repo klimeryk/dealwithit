@@ -19,6 +19,7 @@ export function getDefaultGlasses(): Glasses {
     },
     flipHorizontally: false,
     flipVertically: false,
+    isSelected: false,
   };
 }
 

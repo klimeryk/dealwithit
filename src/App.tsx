@@ -286,6 +286,27 @@ function App() {
         newGlassesList[index][field] = !newGlassesList[index][field];
         setGlassesList(newGlassesList);
       }
+      function handleGlassesSelectionChange(
+        event: React.MouseEvent<HTMLElement, MouseEvent>,
+      ) {
+        const id = event.currentTarget.dataset.id as nanoId;
+        const index = glassesList.findIndex(byId(id));
+        if (index === -1) {
+          return;
+        }
+        let previouslySelectedId;
+        const newGlassesList = glassesList.map((glasses) => {
+          if (glasses.isSelected) {
+            previouslySelectedId = glasses.id;
+          }
+          glasses.isSelected = false;
+          return glasses;
+        });
+        if (previouslySelectedId !== id) {
+          newGlassesList[index].isSelected = true;
+        }
+        setGlassesList(newGlassesList);
+      }
       function handleRemoveGlasses(
         event: React.MouseEvent<HTMLElement, MouseEvent>,
       ) {
@@ -304,6 +325,7 @@ function App() {
           glasses={glasses}
           onDirectionChange={handleGlassesDirectionChange}
           onFlipChange={handleGlassesFlipChange}
+          onSelectionChange={handleGlassesSelectionChange}
           onRemove={handleRemoveGlasses}
         />
       );

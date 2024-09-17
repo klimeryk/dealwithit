@@ -1,4 +1,4 @@
-import { DeleteOutlined, HolderOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EyeOutlined, HolderOutlined } from "@ant-design/icons";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Button, Select } from "antd";
@@ -10,6 +10,7 @@ interface SortableGlassesItemProps {
   glasses: Glasses;
   onDirectionChange: (id: nanoId, direction: GlassesDirection) => void;
   onFlipChange: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
+  onSelectionChange: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   onRemove: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
 }
 
@@ -17,6 +18,7 @@ function SortableGlassesItem({
   glasses,
   onDirectionChange,
   onFlipChange,
+  onSelectionChange,
   onRemove,
 }: SortableGlassesItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition } =
@@ -91,7 +93,15 @@ function SortableGlassesItem({
             onClick={onFlipChange}
           />
         </div>
-        <div>
+        <div className="flex gap-2">
+          <Button
+            title="Highlight this instance of glasses on preview - this is only to help you find them, it does not affect output"
+            size="small"
+            type={glasses.isSelected ? "primary" : "default"}
+            icon={<EyeOutlined />}
+            data-id={glasses.id}
+            onClick={onSelectionChange}
+          />
           <Button
             data-id={glasses.id}
             danger

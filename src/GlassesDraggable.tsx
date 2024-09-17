@@ -21,21 +21,28 @@ function GlassesDraggable({ glasses }: GlassesDraggableProps) {
     transform: CSS.Translate.toString(transform),
     left: glasses.coordinates.x,
     top: glasses.coordinates.y,
+    zIndex: glasses.isSelected ? 20 : 10,
   };
 
   const imageStyle = {
     transform: getFlipTransform(glasses),
+    gridRow: 1,
+    gridColumn: 1,
   };
 
   return (
     <span
-      className="absolute w-1/2 left-0 top-0 hover:cursor-move"
+      className="absolute w-1/2 left-0 top-0 hover:cursor-move grid"
       ref={setDraggableRef}
       style={glassesStyle}
       {...listeners}
       {...attributes}
     >
-      <img src={glassesImageUrl} style={imageStyle} />
+      <img
+        src={glassesImageUrl}
+        style={imageStyle}
+        className={glasses.isSelected ? "invert" : ""}
+      />
     </span>
   );
 }
