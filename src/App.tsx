@@ -37,7 +37,6 @@ import party from "party-js";
 import { usePostHog } from "posthog-js/react";
 import { useEffect, useMemo, useState, useRef } from "react";
 
-import glassesImageUrl from "./assets/glasses.png";
 import InputImage from "./InputImage.tsx";
 import { byId } from "./lib/id-utils.ts";
 import { generateOutputFilename, getDefaultGlasses } from "./lib/utils.ts";
@@ -146,7 +145,7 @@ function App() {
 
     gifWorker.postMessage({
       configurationOptions,
-      glasses: { glassesList, url: glassesImageUrl },
+      glassesList: glassesList,
       imageOptions,
       inputImage: {
         renderedWidth: inputImageRef.current.width,
@@ -270,6 +269,15 @@ function App() {
         newGlassesList[index].direction = direction;
         setGlassesList(newGlassesList);
       }
+      function handleGlassesStyleChange(id: nanoId, styleUrl: string) {
+        const index = glassesList.findIndex(byId(id));
+        if (index === -1) {
+          return;
+        }
+        const newGlassesList = [...glassesList];
+        newGlassesList[index].styleUrl = styleUrl;
+        setGlassesList(newGlassesList);
+      }
       function handleGlassesFlipChange(
         event: React.MouseEvent<HTMLElement, MouseEvent>,
       ) {
@@ -326,6 +334,7 @@ function App() {
           onDirectionChange={handleGlassesDirectionChange}
           onFlipChange={handleGlassesFlipChange}
           onSelectionChange={handleGlassesSelectionChange}
+          onStyleChange={handleGlassesStyleChange}
           onRemove={handleRemoveGlasses}
         />
       );

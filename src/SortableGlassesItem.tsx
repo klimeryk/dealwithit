@@ -3,6 +3,10 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Button, Select } from "antd";
 
+import glassesSmallImageUrl from "./assets/glasses-small.png";
+import glassesSymmetricalPartyImageUrl from "./assets/glasses-symmetrical-party.png";
+import glassesSymmetricalImageUrl from "./assets/glasses-symmetrical.png";
+import glassesImageUrl from "./assets/glasses.png";
 import FlipH from "./icons/FlipH.tsx";
 import FlipV from "./icons/FlipV.tsx";
 
@@ -11,6 +15,7 @@ interface SortableGlassesItemProps {
   onDirectionChange: (id: nanoId, direction: GlassesDirection) => void;
   onFlipChange: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   onSelectionChange: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
+  onStyleChange: (id: nanoId, style: string) => void;
   onRemove: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
 }
 
@@ -19,6 +24,7 @@ function SortableGlassesItem({
   onDirectionChange,
   onFlipChange,
   onSelectionChange,
+  onStyleChange,
   onRemove,
 }: SortableGlassesItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition } =
@@ -32,6 +38,29 @@ function SortableGlassesItem({
   function handleDirectionChange(value: GlassesDirection) {
     onDirectionChange(glasses.id, value);
   }
+
+  function handleStyleChange(value: string) {
+    onStyleChange(glasses.id, value);
+  }
+
+  const styleOptions = [
+    {
+      label: "Classic",
+      value: glassesImageUrl,
+    },
+    {
+      label: "Small",
+      value: glassesSmallImageUrl,
+    },
+    {
+      label: "Symmetrical",
+      value: glassesSymmetricalImageUrl,
+    },
+    {
+      label: "Party",
+      value: glassesSymmetricalPartyImageUrl,
+    },
+  ];
 
   const directionOptions = [
     {
@@ -58,7 +87,7 @@ function SortableGlassesItem({
       style={style}
       className="py-2 px-2 text-sm font-medium text-gray-800 last:rounded-b-md dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
     >
-      <div className="flex justify-between w-full">
+      <div className="flex gap-2 justify-between w-full">
         <div className="flex gap-2">
           <Button
             className="cursor-ns-resize"
@@ -69,12 +98,22 @@ function SortableGlassesItem({
             {...listeners}
           />
           <Select
+            title="Style of glasses"
+            className="w-20"
+            data-id={glasses.id}
+            size="small"
+            defaultValue={glassesImageUrl}
+            onChange={handleStyleChange}
+            options={styleOptions}
+            popupMatchSelectWidth={false}
+          />
+          <Select
+            title="Direction from which the glasses should arrive in frame"
             data-id={glasses.id}
             size="small"
             defaultValue="up"
             onChange={handleDirectionChange}
             options={directionOptions}
-            title="Direction from which the glasses should arrive in frame"
           />
           <Button
             title="Flip image horizontally"

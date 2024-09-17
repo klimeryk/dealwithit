@@ -114,21 +114,22 @@ export function maybeFlipImage(
 
   return image;
 }
+const glassesImagesCache: Record<string, Jimp & ResizeClass> = {};
 
-export function getGlassesImages(
-  glassesList: Glasses[],
-  originalGlassesImage: Jimp & ResizeClass,
-  width: number,
-) {
-  return glassesList.reduce(
-    (outputList, glasses) => {
-      const glassesImage = originalGlassesImage
-        .clone()
-        .resize(width / 2, Jimp.AUTO, Jimp.RESIZE_BICUBIC);
-      maybeFlipImage(glassesImage, glasses);
-      outputList[glasses.id] = glassesImage;
-      return outputList;
-    },
-    {} as Record<nanoId, Jimp>,
-  );
+export async function getGlassesImages(glassesList: Glasses[], width: number) {
+  const outputList = {} as Record<nanoId, Jimp>;
+  for (const glasses of glassesList) {
+    if (!glassesImagesCache[glasses.styleUrl]) {
+      const glassesImage = await Jimp.read(glasses.styleUrl);
+      glassesImagesCache[glasses.styleUrl] = glassesImage.resize(
+        width / 2,
+        Jimp.AUTO,
+        Jimp.RESIZE_BICUBIC,
+      );
+    }
+    const glassesImage = glassesImagesCache[glasses.styleUrl].clone();
+    maybeFlipImage(glassesImage, glasses);
+    outputList[glasses.id] = glassesImage;
+  }
+  return outputList;
 }

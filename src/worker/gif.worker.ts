@@ -13,8 +13,6 @@ import {
 
 const { Jimp } = self;
 
-let glassesImage: Jimp & ResizeClass & Blit;
-
 function getProcessedImage(
   image: Jimp & ResizeClass & Blit,
   size: number,
@@ -33,20 +31,21 @@ function getProcessedImage(
 }
 
 self.onmessage = (event: MessageEvent) => {
-  const { configurationOptions, glasses, inputFile, inputImage, imageOptions } =
-    event.data;
+  const {
+    configurationOptions,
+    glassesList,
+    inputFile,
+    inputImage,
+    imageOptions,
+  } = event.data;
   const { looping, numberOfFrames, size } =
     configurationOptions as ConfigurationOptions;
-  const { glassesList, url: glassesImageUrl } = glasses;
   const { renderedWidth, renderedHeight } = inputImage;
   const reader = new FileReader();
 
   const reportProgress = prepareReportProgress(numberOfFrames);
 
   reader.onload = async () => {
-    if (!glassesImage) {
-      glassesImage = await Jimp.read(glassesImageUrl);
-    }
     const originalImage = await Jimp.read(reader.result as Buffer);
     reportProgress();
     const image = getProcessedImage(originalImage, size, imageOptions);
@@ -62,7 +61,7 @@ self.onmessage = (event: MessageEvent) => {
     }
 
     const frames = [];
-    const glassesImages = getGlassesImages(glassesList, glassesImage, width);
+    const glassesImages = await getGlassesImages(glassesList, width);
     reportProgress();
     const scaleX = width / renderedWidth;
     const scaleY = height / renderedHeight;

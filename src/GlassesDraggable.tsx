@@ -1,7 +1,6 @@
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 
-import glassesImageUrl from "./assets/glasses.png";
 import { getFlipTransform } from "./lib/utils.ts";
 
 interface GlassesDraggableProps {
@@ -39,7 +38,7 @@ function GlassesDraggable({ glasses }: GlassesDraggableProps) {
       {...attributes}
     >
       <img
-        src={glassesImageUrl}
+        src={glasses.styleUrl}
         style={imageStyle}
         className={glasses.isSelected ? "invert" : ""}
       />

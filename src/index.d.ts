@@ -18,6 +18,7 @@ type Glasses = WithFlip &
     coordinates: Coordinates;
     direction: GlassesDirection;
     isSelected: boolean;
+    styleUrl: string;
   };
 
 interface LoopingOptions {

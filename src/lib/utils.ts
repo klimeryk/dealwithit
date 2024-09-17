@@ -1,5 +1,7 @@
 import { nanoid } from "nanoid";
 
+import glassesImageUrl from "../assets/glasses.png";
+
 export function generateOutputFilename(inputFile: File) {
   const nameParts = inputFile.name.split(".");
   nameParts.pop();
@@ -20,6 +22,7 @@ export function getDefaultGlasses(): Glasses {
     flipHorizontally: false,
     flipVertically: false,
     isSelected: false,
+    styleUrl: glassesImageUrl,
   };
 }
 
