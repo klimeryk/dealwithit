@@ -8,7 +8,10 @@ import {
 } from "@ant-design/icons";
 import { closestCenter, DndContext } from "@dnd-kit/core";
 import type { DragEndEvent } from "@dnd-kit/core";
-import { restrictToParentElement } from "@dnd-kit/modifiers";
+import {
+  restrictToVerticalAxis,
+  restrictToParentElement,
+} from "@dnd-kit/modifiers";
 import {
   arrayMove,
   SortableContext,
@@ -362,6 +365,7 @@ function App() {
           }
         >
           <DndContext
+            modifiers={[restrictToVerticalAxis, restrictToParentElement]}
             collisionDetection={closestCenter}
             onDragEnd={handleGlassesItemDragEnd}
           >

@@ -58,7 +58,14 @@ function SortableGlassesItem({
     >
       <div className="flex justify-between w-full">
         <div className="flex gap-2">
-          <HolderOutlined className="me-2" {...attributes} {...listeners} />
+          <Button
+            className="cursor-ns-resize"
+            type="link"
+            size="small"
+            icon={<HolderOutlined />}
+            {...attributes}
+            {...listeners}
+          />
           <Select
             data-id={glasses.id}
             size="small"
