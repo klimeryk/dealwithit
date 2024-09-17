@@ -79,6 +79,7 @@ function SortableGlassesItem({
           <Button
             title="Flip image horizontally"
             size="small"
+            type={glasses.flipHorizontally ? "primary" : "default"}
             icon={<FlipH />}
             data-id={glasses.id}
             data-field="flipHorizontally"
@@ -87,6 +88,7 @@ function SortableGlassesItem({
           <Button
             title="Flip image vertically"
             size="small"
+            type={glasses.flipVertically ? "primary" : "default"}
             icon={<FlipV />}
             data-id={glasses.id}
             data-field="flipVertically"
