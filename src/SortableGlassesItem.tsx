@@ -116,7 +116,7 @@ function SortableGlassesItem({
             options={directionOptions}
           />
           <Button
-            title="Flip image horizontally"
+            title="Flip glasses horizontally"
             size="small"
             type={glasses.flipHorizontally ? "primary" : "default"}
             icon={<FlipH />}
@@ -125,7 +125,7 @@ function SortableGlassesItem({
             onClick={onFlipChange}
           />
           <Button
-            title="Flip image vertically"
+            title="Flip glasses vertically"
             size="small"
             type={glasses.flipVertically ? "primary" : "default"}
             icon={<FlipV />}
