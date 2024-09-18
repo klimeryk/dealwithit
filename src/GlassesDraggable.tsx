@@ -25,13 +25,11 @@ function GlassesDraggable({ glasses }: GlassesDraggableProps) {
 
   const imageStyle = {
     transform: getFlipTransform(glasses),
-    gridRow: 1,
-    gridColumn: 1,
   };
 
   return (
     <span
-      className="absolute w-1/2 left-0 top-0 hover:cursor-move grid"
+      className="absolute w-1/2 left-0 top-0 hover:cursor-move"
       ref={setDraggableRef}
       style={glassesStyle}
       {...listeners}
