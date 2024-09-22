@@ -39,7 +39,11 @@ import { useEffect, useMemo, useState, useRef } from "react";
 
 import InputImage from "./InputImage.tsx";
 import { byId } from "./lib/id-utils.ts";
-import { generateOutputFilename, getDefaultGlasses } from "./lib/utils.ts";
+import {
+  generateOutputFilename,
+  getDefaultGlasses,
+  getSuccessMessage,
+} from "./lib/utils.ts";
 import SortableGlassesItem from "./SortableGlassesItem.tsx";
 
 const { Dragger } = Upload;
@@ -68,6 +72,7 @@ function App() {
   const [status, setStatus] = useState<
     "START" | "READY" | "GENERATING" | "DONE"
   >("START");
+  const [successCount, setSuccessCount] = useState(0);
   const [inputFile, setInputFile] = useState<File>();
   const [inputImageDataUrl, setInputImageDataUrl] = useState("");
   const [outputImage, setOutputImage] = useState<Blob>();
@@ -121,6 +126,7 @@ function App() {
     const { gifBlob, resultDataUrl } = data;
     setOutputImage(gifBlob);
     setOutputImageDataUrl(resultDataUrl);
+    setSuccessCount(successCount + 1);
     setStatus("DONE");
   };
 
@@ -604,7 +610,7 @@ function App() {
             {renderForm()}
           </div>
           <Modal
-            title="Here's your shiny new emoji!"
+            title={getSuccessMessage(successCount)}
             open={status === "DONE"}
             onCancel={closeModal}
             destroyOnClose
