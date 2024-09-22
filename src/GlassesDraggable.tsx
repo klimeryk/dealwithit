@@ -1,13 +1,24 @@
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
+import { Button } from "antd";
+import { useCallback, useEffect, useState } from "react";
 
-import { getFlipTransform } from "./lib/utils.ts";
+import HandleCorner from "./icons/HandleCorner.tsx";
+import { getAspectRatio, getFlipTransform } from "./lib/utils.ts";
 
 interface GlassesDraggableProps {
   glasses: Glasses;
+  inputImageRef: React.RefObject<HTMLImageElement>;
+  onSizeChange: (id: nanoId, size: Size) => void;
 }
 
-function GlassesDraggable({ glasses }: GlassesDraggableProps) {
+const MIN_WIDTH = 16;
+
+function GlassesDraggable({
+  glasses,
+  inputImageRef,
+  onSizeChange,
+}: GlassesDraggableProps) {
   const {
     attributes,
     listeners,
@@ -16,29 +27,117 @@ function GlassesDraggable({ glasses }: GlassesDraggableProps) {
   } = useDraggable({
     id: glasses.id,
   });
+
+  const [isResizing, setIsResizing] = useState(false);
+  const [startSize, setStartSize] = useState({ width: 0, height: 0 });
+  const [startPos, setStartPos] = useState({ x: 0, y: 0 });
+
+  const handleMouseDown = (
+    event: React.MouseEvent<HTMLElement, MouseEvent>,
+  ) => {
+    event.preventDefault();
+    setIsResizing(true);
+    setStartSize(glasses.size);
+    setStartPos({ x: event.clientX, y: event.clientY });
+  };
+
+  const handleMouseMove = useCallback(
+    (event: MouseEvent) => {
+      if (!isResizing || !inputImageRef.current) {
+        return;
+      }
+
+      let newWidth = startSize.width + event.clientX - startPos.x;
+      if (newWidth < MIN_WIDTH) {
+        newWidth = MIN_WIDTH;
+      }
+      const maxWidthRelativeToParent =
+        inputImageRef.current.width - glasses.coordinates.x;
+      if (newWidth > maxWidthRelativeToParent) {
+        newWidth = maxWidthRelativeToParent;
+      }
+      let newHeight = newWidth / getAspectRatio(glasses.styleUrl);
+      const maxHeightRelativeToParent =
+        inputImageRef.current.height - glasses.coordinates.y;
+      if (newHeight > maxHeightRelativeToParent) {
+        newHeight = maxHeightRelativeToParent;
+        newWidth = glasses.size.width;
+      }
+
+      onSizeChange(glasses.id, { width: newWidth, height: newHeight });
+    },
+    [
+      glasses.id,
+      glasses.coordinates,
+      glasses.size,
+      glasses.styleUrl,
+      inputImageRef,
+      isResizing,
+      startSize,
+      startPos,
+      onSizeChange,
+    ],
+  );
+
+  const handleMouseUp = () => {
+    setIsResizing(false);
+  };
+
+  useEffect(() => {
+    if (isResizing) {
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+    } else {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isResizing, handleMouseMove]);
+
   const glassesStyle = {
     transform: CSS.Translate.toString(transform),
     left: glasses.coordinates.x,
     top: glasses.coordinates.y,
     zIndex: glasses.isSelected ? 20 : 10,
+    width: `${glasses.size.width}px`,
+    height: `${glasses.size.height}px`,
   };
 
   const imageStyle = {
     transform: getFlipTransform(glasses),
+    width: `${glasses.size.width}px`,
+    height: `${glasses.size.height}px`,
   };
 
   return (
     <span
-      className="absolute w-1/2 left-0 top-0 hover:cursor-move"
+      className="absolute w-1/2 left-0 top-0"
       ref={setDraggableRef}
       style={glassesStyle}
-      {...listeners}
-      {...attributes}
     >
       <img
         src={glasses.styleUrl}
         style={imageStyle}
-        className={glasses.isSelected ? "invert" : ""}
+        className={"cursor-move " + (glasses.isSelected ? "invert" : "")}
+        {...attributes}
+        {...listeners}
+      />
+      <Button
+        icon={<HandleCorner />}
+        type="text"
+        onMouseDown={handleMouseDown}
+        style={{
+          position: "absolute",
+          bottom: 0,
+          right: 0,
+          width: "10px",
+          height: "10px",
+          cursor: "nwse-resize",
+        }}
       />
     </span>
   );

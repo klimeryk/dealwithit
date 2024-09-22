@@ -116,14 +116,18 @@ export function maybeFlipImage(
 }
 const glassesImagesCache: Record<string, Jimp & ResizeClass> = {};
 
-export async function getGlassesImages(glassesList: Glasses[], width: number) {
+export async function getGlassesImages(
+  glassesList: Glasses[],
+  scaleX: number,
+  scaleY: number,
+) {
   const outputList = {} as Record<nanoId, Jimp>;
   for (const glasses of glassesList) {
     if (!glassesImagesCache[glasses.styleUrl]) {
       const glassesImage = await Jimp.read(glasses.styleUrl);
       glassesImagesCache[glasses.styleUrl] = glassesImage.resize(
-        width / 2,
-        Jimp.AUTO,
+        scaleX * glasses.size.width,
+        scaleY * glasses.size.height,
         Jimp.RESIZE_BICUBIC,
       );
     }

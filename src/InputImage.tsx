@@ -7,6 +7,7 @@ import FlipV from "./icons/FlipV.tsx";
 import { getFlipTransform } from "./lib/utils.ts";
 
 interface InputImageProps {
+  onGlassesSizeChange: (id: nanoId, { width, height }: Size) => void;
   onInputImageError: () => void;
   onImageOptionsChange: (
     event: React.MouseEvent<HTMLElement, MouseEvent>,
@@ -23,6 +24,7 @@ function InputImage({
   onInputImageError,
   onImageOptionsChange,
   onRemoveInputImage,
+  onGlassesSizeChange,
   imageOptions,
   inputImageDataUrl,
   inputImageRef,
@@ -33,7 +35,14 @@ function InputImage({
   };
 
   function renderGlasses(glasses: Glasses) {
-    return <GlassesDraggable key={glasses.id} glasses={glasses} />;
+    return (
+      <GlassesDraggable
+        key={glasses.id}
+        glasses={glasses}
+        inputImageRef={inputImageRef}
+        onSizeChange={onGlassesSizeChange}
+      />
+    );
   }
 
   return (

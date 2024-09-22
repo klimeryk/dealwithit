@@ -61,10 +61,10 @@ self.onmessage = (event: MessageEvent) => {
     }
 
     const frames = [];
-    const glassesImages = await getGlassesImages(glassesList, width);
-    reportProgress();
     const scaleX = width / renderedWidth;
     const scaleY = height / renderedHeight;
+    const glassesImages = await getGlassesImages(glassesList, scaleX, scaleY);
+    reportProgress();
     for (let frameNumber = 0; frameNumber < numberOfFrames + 1; ++frameNumber) {
       frames.push(
         renderGlassesFrame(

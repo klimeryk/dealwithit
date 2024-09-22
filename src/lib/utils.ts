@@ -1,5 +1,8 @@
 import { nanoid } from "nanoid";
 
+import glassesSmallImageUrl from "../assets/glasses-small.png";
+import glassesSymmetricalPartyImageUrl from "../assets/glasses-symmetrical-party.png";
+import glassesSymmetricalImageUrl from "../assets/glasses-symmetrical.png";
 import glassesImageUrl from "../assets/glasses.png";
 
 export function generateOutputFilename(inputFile: File) {
@@ -12,6 +15,7 @@ export function generateOutputFilename(inputFile: File) {
 }
 
 export function getDefaultGlasses(): Glasses {
+  const DEFAULT_WIDTH = 150;
   return {
     id: nanoid(),
     direction: "up",
@@ -23,6 +27,10 @@ export function getDefaultGlasses(): Glasses {
     flipVertically: false,
     isSelected: false,
     styleUrl: glassesImageUrl,
+    size: {
+      width: DEFAULT_WIDTH,
+      height: DEFAULT_WIDTH / getAspectRatio(glassesImageUrl),
+    },
   };
 }
 
@@ -39,4 +47,19 @@ export function getFlipTransform({
   }
 
   return transform;
+}
+
+export function getAspectRatio(imageUrl: string) {
+  switch (imageUrl) {
+    case glassesSmallImageUrl:
+      return 240 / 60;
+
+    case glassesSymmetricalPartyImageUrl:
+    case glassesSymmetricalImageUrl:
+      return 832 / 160;
+
+    case glassesImageUrl:
+    default:
+      return 927 / 145;
+  }
 }

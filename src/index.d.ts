@@ -19,11 +19,17 @@ type Glasses = WithFlip &
     direction: GlassesDirection;
     isSelected: boolean;
     styleUrl: string;
+    size: Size;
   };
 
 interface LoopingOptions {
   mode: "infinite" | "off" | "finite";
   loops: number;
+}
+
+interface Size {
+  width: number;
+  height: number;
 }
 
 interface ToggleValue<Type> {

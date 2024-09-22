@@ -203,14 +203,19 @@ function App() {
     );
   }
 
+  function goBackToStart() {
+    setStatus("START");
+    setInputImageDataUrl("");
+    setInputFile(undefined);
+    setImageOptions({ flipVertically: false, flipHorizontally: false });
+    setGlassesList([getDefaultGlasses()]);
+  }
+
   function renderInputImage() {
     function handleRemoveInputImage() {
       posthog?.capture("user_removed_input_image");
 
-      setStatus("START");
-      setInputImageDataUrl("");
-      setInputFile(undefined);
-      setImageOptions({ flipVertically: false, flipHorizontally: false });
+      goBackToStart();
     }
 
     function handleInputImageError() {
@@ -219,9 +224,7 @@ function App() {
       );
       posthog?.capture("user_uploaded_invalid_input_image");
 
-      setStatus("START");
-      setInputImageDataUrl("");
-      setInputFile(undefined);
+      goBackToStart();
     }
 
     function handleImageOptionsChange(
@@ -340,6 +343,16 @@ function App() {
       );
     }
 
+    function handleGlassesSizeChange(id: nanoId, size: Size) {
+      const index = glassesList.findIndex(byId(id));
+      if (index === -1) {
+        return;
+      }
+      const newGlassesList = [...glassesList];
+      newGlassesList[index].size = size;
+      setGlassesList(newGlassesList);
+    }
+
     function handleGlassesItemDragEnd({ active, over }: DragEndEvent) {
       const oldId = active.id as nanoId;
       const newId = over?.id as nanoId;
@@ -375,6 +388,7 @@ function App() {
             inputImageDataUrl={inputImageDataUrl}
             inputImageRef={inputImageRef}
             glassesList={glassesList}
+            onGlassesSizeChange={handleGlassesSizeChange}
             onInputImageError={handleInputImageError}
             onImageOptionsChange={handleImageOptionsChange}
             onRemoveInputImage={handleRemoveInputImage}
