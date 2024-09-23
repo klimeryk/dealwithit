@@ -4,7 +4,8 @@ import { Button } from "antd";
 import { useCallback, useEffect, useState } from "react";
 
 import HandleCorner from "./icons/HandleCorner.tsx";
-import { getAspectRatio, getFlipTransform } from "./lib/utils.ts";
+import { getAspectRatio } from "./lib/glasses.ts";
+import { getFlipTransform } from "./lib/utils.ts";
 
 interface GlassesDraggableProps {
   glasses: Glasses;

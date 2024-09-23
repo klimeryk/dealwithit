@@ -42,16 +42,15 @@ import { usePostHog } from "posthog-js/react";
 import { useEffect, useMemo, useState, useRef } from "react";
 
 import InputImage from "./InputImage.tsx";
-import { byId } from "./lib/id-utils.ts";
 import {
-  generateOutputFilename,
   getDefaultGlasses,
   getEyesDistance,
   getGlassesSize,
   getNoseOffset,
   getRandomGlassesStyle,
-  getSuccessMessage,
-} from "./lib/utils.ts";
+} from "./lib/glasses.ts";
+import { byId } from "./lib/id-utils.ts";
+import { generateOutputFilename, getSuccessMessage } from "./lib/utils.ts";
 import SortableGlassesItem from "./SortableGlassesItem.tsx";
 
 const { Dragger } = Upload;
