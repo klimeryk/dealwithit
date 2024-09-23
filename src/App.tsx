@@ -32,6 +32,7 @@ import {
   Button,
   Progress,
   Space,
+  Typography,
   Upload,
   Modal,
   message,
@@ -53,6 +54,7 @@ import { byId } from "./lib/id-utils.ts";
 import { generateOutputFilename, getSuccessMessage } from "./lib/utils.ts";
 import SortableGlassesItem from "./SortableGlassesItem.tsx";
 
+const { Text, Link } = Typography;
 const { Dragger } = Upload;
 
 const EMOJI_GENERATION_START_MARK = "EmojiGenerationStartMark";
@@ -701,12 +703,24 @@ function App() {
           </Modal>
         </div>
       </div>
-      <h3 className="leading-relaxed text-base text-center text-gray-500">
-        <a href="https://github.com/klimeryk/dealwithit" target="_blank">
-          <GithubOutlined className="mr-1" />
-          View source code on GitHub
-        </a>
-      </h3>
+      <div className="text-center">
+        <Text type="secondary">
+          Made with passion by{" "}
+          <Link href="https://klimer.eu/" target="_blank">
+            Igor Klimer
+          </Link>
+          . Source code on
+          <Link
+            className="ms-2"
+            href="https://github.com/klimeryk/dealwithit"
+            target="_blank"
+          >
+            <GithubOutlined className="mr-1" />
+            GitHub
+          </Link>
+          .
+        </Text>
+      </div>
     </>
   );
 }
