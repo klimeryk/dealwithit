@@ -1,3 +1,4 @@
+import { Coordinates } from "@dnd-kit/core/dist/types";
 import { nanoid } from "nanoid";
 
 import glassesSmallImageUrl from "../assets/glasses-small.png";
@@ -14,7 +15,7 @@ export function generateOutputFilename(inputFile: File) {
   return nameParts.join(".");
 }
 
-export function getDefaultGlasses(): Glasses {
+export function getDefaultGlasses(styleUrl = glassesImageUrl): Glasses {
   const DEFAULT_WIDTH = 150;
   return {
     id: nanoid(),
@@ -26,10 +27,10 @@ export function getDefaultGlasses(): Glasses {
     flipHorizontally: false,
     flipVertically: false,
     isSelected: false,
-    styleUrl: glassesImageUrl,
+    styleUrl: styleUrl,
     size: {
       width: DEFAULT_WIDTH,
-      height: DEFAULT_WIDTH / getAspectRatio(glassesImageUrl),
+      height: DEFAULT_WIDTH / getAspectRatio(styleUrl),
     },
   };
 }
@@ -49,18 +50,53 @@ export function getFlipTransform({
   return transform;
 }
 
-export function getAspectRatio(imageUrl: string) {
+export function getGlassesSize(imageUrl: string): Size {
   switch (imageUrl) {
     case glassesSmallImageUrl:
-      return 240 / 60;
+      return { width: 240, height: 60 };
 
     case glassesSymmetricalPartyImageUrl:
     case glassesSymmetricalImageUrl:
-      return 832 / 160;
+      return { width: 832, height: 160 };
 
     case glassesImageUrl:
     default:
-      return 927 / 145;
+      return { width: 927, height: 145 };
+  }
+}
+
+export function getAspectRatio(imageUrl: string) {
+  const { width, height } = getGlassesSize(imageUrl);
+  return width / height;
+}
+
+export function getNoseOffset({ styleUrl }: Glasses): Coordinates {
+  switch (styleUrl) {
+    case glassesSmallImageUrl:
+      return { x: 119, y: 19 };
+
+    case glassesSymmetricalPartyImageUrl:
+    case glassesSymmetricalImageUrl:
+      return { x: 415, y: 32 };
+
+    case glassesImageUrl:
+    default:
+      return { x: 609, y: 58 };
+  }
+}
+
+export function getEyesDistance({ styleUrl }: Glasses) {
+  switch (styleUrl) {
+    case glassesSmallImageUrl:
+      return 140;
+
+    case glassesSymmetricalPartyImageUrl:
+    case glassesSymmetricalImageUrl:
+      return 415;
+
+    case glassesImageUrl:
+    default:
+      return 354;
   }
 }
 
@@ -94,4 +130,14 @@ export function getSuccessMessage(count: number) {
     "Enjoy your new emoji!",
   ];
   return successMessages[Math.floor(Math.random() * successMessages.length)];
+}
+
+export function getRandomGlassesStyle(): string {
+  const glassesStyles = [
+    glassesImageUrl,
+    glassesSmallImageUrl,
+    glassesSymmetricalImageUrl,
+    glassesSymmetricalPartyImageUrl,
+  ];
+  return glassesStyles[Math.floor(Math.random() * glassesStyles.length)];
 }

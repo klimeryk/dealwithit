@@ -103,7 +103,7 @@ function SortableGlassesItem({
               className="w-24"
               data-id={glasses.id}
               size="small"
-              defaultValue={glassesImageUrl}
+              defaultValue={glasses.styleUrl}
               onChange={handleStyleChange}
               options={styleOptions}
               popupMatchSelectWidth={false}

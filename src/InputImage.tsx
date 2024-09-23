@@ -9,6 +9,7 @@ import { getFlipTransform } from "./lib/utils.ts";
 interface InputImageProps {
   onGlassesSizeChange: (id: nanoId, { width, height }: Size) => void;
   onInputImageError: () => void;
+  onInputImageLoad: () => void;
   onImageOptionsChange: (
     event: React.MouseEvent<HTMLElement, MouseEvent>,
   ) => void;
@@ -22,6 +23,7 @@ interface InputImageProps {
 
 function InputImage({
   onInputImageError,
+  onInputImageLoad,
   onImageOptionsChange,
   onRemoveInputImage,
   onGlassesSizeChange,
@@ -53,6 +55,7 @@ function InputImage({
           ref={inputImageRef}
           src={inputImageDataUrl}
           onError={onInputImageError}
+          onLoad={onInputImageLoad}
         />
         {glassesList.map(renderGlasses)}
       </div>

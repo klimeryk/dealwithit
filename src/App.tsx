@@ -1,4 +1,5 @@
 import "jimp/browser/lib/jimp.js";
+import "@tensorflow/tfjs-backend-webgl";
 import {
   DownloadOutlined,
   FireOutlined,
@@ -17,6 +18,9 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import * as mpFaceDetection from "@mediapipe/face_detection";
+import * as tfjsWasm from "@tensorflow/tfjs-backend-wasm";
+import * as faceDetection from "@tensorflow-models/face-detection";
 import type { UploadProps } from "antd";
 import {
   Alert,
@@ -42,6 +46,10 @@ import { byId } from "./lib/id-utils.ts";
 import {
   generateOutputFilename,
   getDefaultGlasses,
+  getEyesDistance,
+  getGlassesSize,
+  getNoseOffset,
+  getRandomGlassesStyle,
   getSuccessMessage,
 } from "./lib/utils.ts";
 import SortableGlassesItem from "./SortableGlassesItem.tsx";
@@ -50,6 +58,20 @@ const { Dragger } = Upload;
 
 const EMOJI_GENERATION_START_MARK = "EmojiGenerationStartMark";
 const EMOJI_GENERATION_END_MARK = "EmojiGenerationEndMark";
+
+tfjsWasm.setWasmPaths(
+  `https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm@${tfjsWasm.version_wasm}/dist/`,
+);
+
+const detector = await faceDetection.createDetector(
+  faceDetection.SupportedModels.MediaPipeFaceDetector,
+  {
+    runtime: "mediapipe",
+    modelType: "short",
+    maxFaces: 1,
+    solutionPath: `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection@${mpFaceDetection.VERSION}`,
+  },
+);
 
 function getDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -77,9 +99,7 @@ function App() {
   const [inputImageDataUrl, setInputImageDataUrl] = useState("");
   const [outputImage, setOutputImage] = useState<Blob>();
   const [outputImageDataUrl, setOutputImageDataUrl] = useState("");
-  const [glassesList, setGlassesList] = useState<Glasses[]>([
-    getDefaultGlasses(),
-  ]);
+  const [glassesList, setGlassesList] = useState<Glasses[]>([]);
   const [imageOptions, setImageOptions] = useState<ImageOptions>({
     flipVertically: false,
     flipHorizontally: false,
@@ -214,7 +234,7 @@ function App() {
     setInputImageDataUrl("");
     setInputFile(undefined);
     setImageOptions({ flipVertically: false, flipHorizontally: false });
-    setGlassesList([getDefaultGlasses()]);
+    setGlassesList([]);
   }
 
   function renderInputImage() {
@@ -231,6 +251,56 @@ function App() {
       posthog?.capture("user_uploaded_invalid_input_image");
 
       goBackToStart();
+    }
+
+    async function handleInputImageLoad() {
+      if (!inputImageRef.current) {
+        return;
+      }
+      const faces = await detector.estimateFaces(inputImageRef.current);
+      if (faces.length === 0) {
+        setGlassesList([getDefaultGlasses()]);
+        return;
+      }
+
+      const scaleX =
+        inputImageRef.current.width / inputImageRef.current.naturalWidth;
+      const scaleY =
+        inputImageRef.current.height / inputImageRef.current.naturalHeight;
+
+      const newGlassesList: Glasses[] = [];
+      for (const face of faces) {
+        const newGlasses =
+          faces.length === 1
+            ? getDefaultGlasses()
+            : getDefaultGlasses(getRandomGlassesStyle());
+        const originalGlassesSize = getGlassesSize(newGlasses.styleUrl);
+        const originalEyesDistance = getEyesDistance(newGlasses);
+        const eyesDistance = Math.sqrt(
+          Math.pow(scaleY * (face.keypoints[0].y - face.keypoints[1].y), 2) +
+          Math.pow(scaleX * (face.keypoints[0].x - face.keypoints[1].x), 2),
+        );
+        const glassesScale = eyesDistance / originalEyesDistance;
+        newGlasses.size.width = originalGlassesSize.width * glassesScale;
+        newGlasses.size.height = originalGlassesSize.height * glassesScale;
+        const noseX = face.keypoints[2].x;
+        const noseY = Math.abs(face.keypoints[0].y - face.keypoints[1].y) / 2;
+        const noseOffset = getNoseOffset(newGlasses);
+        const glassesScaleX = newGlasses.size.width / originalGlassesSize.width;
+        const glassesScaleY =
+          newGlasses.size.height / originalGlassesSize.height;
+        newGlasses.coordinates = {
+          x: Math.abs(noseX * scaleX - noseOffset.x * glassesScaleX),
+          y: Math.abs(
+            (face.keypoints[0].y + noseY) * scaleY -
+            noseOffset.y * glassesScaleY,
+          ),
+        };
+
+        newGlassesList.push(newGlasses);
+      }
+
+      setGlassesList(newGlassesList);
     }
 
     function handleImageOptionsChange(
@@ -396,6 +466,7 @@ function App() {
             glassesList={glassesList}
             onGlassesSizeChange={handleGlassesSizeChange}
             onInputImageError={handleInputImageError}
+            onInputImageLoad={handleInputImageLoad}
             onImageOptionsChange={handleImageOptionsChange}
             onRemoveInputImage={handleRemoveInputImage}
           />
