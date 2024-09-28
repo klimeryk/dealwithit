@@ -99,6 +99,37 @@ function GlassesDraggable({
     };
   }, [isResizing, handleMouseMove]);
 
+  const clipPath = {
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+  };
+
+  const positionX = glasses.coordinates.x + (transform?.x || 0);
+  if (positionX < 0) {
+    clipPath.left = Math.abs(positionX);
+  } else if (
+    inputImageRef.current &&
+    positionX + glasses.size.width > inputImageRef.current.width
+  ) {
+    clipPath.right = Math.abs(
+      positionX + glasses.size.width - inputImageRef.current.width,
+    );
+  }
+
+  const positionY = glasses.coordinates.y + (transform?.y || 0);
+  if (positionY < 0) {
+    clipPath.top = Math.abs(positionY);
+  } else if (
+    inputImageRef.current &&
+    positionY + glasses.size.height > inputImageRef.current.height
+  ) {
+    clipPath.bottom = Math.abs(
+      positionY + glasses.size.height - inputImageRef.current.height,
+    );
+  }
+
   const glassesStyle = {
     transform: CSS.Translate.toString(transform),
     left: glasses.coordinates.x,
@@ -106,6 +137,7 @@ function GlassesDraggable({
     zIndex: glasses.isSelected ? 20 : 10,
     width: `${glasses.size.width}px`,
     height: `${glasses.size.height}px`,
+    clipPath: `inset(${clipPath.top}px ${clipPath.right}px ${clipPath.bottom}px ${clipPath.left}px)`,
   };
 
   const imageStyle = {
