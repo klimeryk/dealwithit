@@ -43,6 +43,7 @@ import { usePostHog } from "posthog-js/react";
 import { useEffect, useMemo, useState, useRef } from "react";
 
 import InputImage from "./InputImage.tsx";
+import { restrictToParentWithOffset } from "./lib/drag-modifiers.ts";
 import {
   getDefaultGlasses,
   getEyesDistance,
@@ -458,7 +459,7 @@ function App() {
       <>
         <DndContext
           onDragEnd={handleDragEnd}
-          modifiers={[restrictToParentElement]}
+          modifiers={[restrictToParentWithOffset]}
         >
           <InputImage
             imageOptions={imageOptions}
