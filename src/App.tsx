@@ -73,7 +73,7 @@ async function loadFaceDetection() {
     faceDetection.SupportedModels.MediaPipeFaceDetector,
     {
       runtime: "mediapipe",
-      modelType: "short",
+      modelType: "full",
       maxFaces: 1,
       solutionPath: `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection@${mpFaceDetection.VERSION}`,
     },
