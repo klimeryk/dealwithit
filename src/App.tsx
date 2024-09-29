@@ -65,15 +65,20 @@ tfjsWasm.setWasmPaths(
   `https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm@${tfjsWasm.version_wasm}/dist/`,
 );
 
-const detector = await faceDetection.createDetector(
-  faceDetection.SupportedModels.MediaPipeFaceDetector,
-  {
-    runtime: "mediapipe",
-    modelType: "short",
-    maxFaces: 1,
-    solutionPath: `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection@${mpFaceDetection.VERSION}`,
-  },
-);
+let detector: faceDetection.FaceDetector;
+
+async function loadFaceDetection() {
+  detector = await faceDetection.createDetector(
+    faceDetection.SupportedModels.MediaPipeFaceDetector,
+    {
+      runtime: "mediapipe",
+      modelType: "short",
+      maxFaces: 1,
+      solutionPath: `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection@${mpFaceDetection.VERSION}`,
+    },
+  );
+}
+loadFaceDetection();
 
 function getDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
