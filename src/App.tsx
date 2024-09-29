@@ -94,7 +94,7 @@ function App() {
   );
   const [messageApi, contextHolder] = message.useMessage();
   const [status, setStatus] = useState<
-    "START" | "READY" | "GENERATING" | "DONE"
+    "START" | "LOADING" | "DETECTING" | "READY" | "GENERATING" | "DONE"
   >("START");
   const [successCount, setSuccessCount] = useState(0);
   const [inputFile, setInputFile] = useState<File>();
@@ -202,6 +202,7 @@ function App() {
       accept: "image/png, image/jpeg",
       showUploadList: false,
       customRequest: async (info) => {
+        setStatus("LOADING");
         const selectedFile = info.file as File;
         setInputFile(selectedFile);
         const detectedMode = selectedFile.name.match(/(hedgehog|posthog)/gi)
@@ -216,16 +217,16 @@ function App() {
 
         const selectedFileAsDataUrl = await getDataUrl(selectedFile);
         setInputImageDataUrl(selectedFileAsDataUrl);
-        setStatus("READY");
+        setStatus("DETECTING");
       },
     };
     return (
-      <Dragger {...props}>
+      <Dragger disabled={status === "LOADING"} {...props}>
         <p className="ant-upload-drag-icon">
           <SmileOutlined />
         </p>
         <p className="ant-upload-text">
-          Click or drag file to this area to upload
+          Click or drag file to this area to start!
         </p>
       </Dragger>
     );
@@ -262,6 +263,7 @@ function App() {
       const faces = await detector.estimateFaces(inputImageRef.current);
       if (faces.length === 0) {
         setGlassesList([getDefaultGlasses()]);
+        setStatus("READY");
         return;
       }
 
@@ -303,6 +305,7 @@ function App() {
       }
 
       setGlassesList(newGlassesList);
+      setStatus("READY");
     }
 
     function handleImageOptionsChange(
@@ -478,6 +481,7 @@ function App() {
           size="small"
           title="Glasses"
           styles={cardStyles}
+          loading={status === "DETECTING"}
           extra={
             <Button
               size="small"
@@ -530,7 +534,7 @@ function App() {
       <Form
         form={form}
         layout="vertical"
-        disabled={status === "START"}
+        disabled={status !== "READY"}
         initialValues={
           {
             numberOfFrames: 15,
@@ -659,6 +663,8 @@ function App() {
     }
   }
 
+  const shouldRenderFileInput = ["START", "LOADING"].includes(status);
+
   return (
     <>
       <div className="flex w-full items-center justify-center">
@@ -677,8 +683,7 @@ function App() {
         <div className="relative p-10 bg-white dark:bg-slate-900 shadow-lg sm:rounded-3xl">
           <div className="grid grid-cols-3 gap-4">
             <div className="col-span-2">
-              {status === "START" && renderFileInput()}
-              {status !== "START" && renderInputImage()}
+              {shouldRenderFileInput ? renderFileInput() : renderInputImage()}
             </div>
             {renderForm()}
           </div>
