@@ -266,6 +266,9 @@ function App() {
         return;
       }
       const faces = await detector.estimateFaces(inputImageRef.current);
+      posthog?.capture("face_detection_done", {
+        numberOfFaces: faces.length,
+      });
       if (faces.length === 0) {
         setGlassesList([getDefaultGlasses()]);
         setStatus("READY");
@@ -317,6 +320,9 @@ function App() {
       event: React.MouseEvent<HTMLElement, MouseEvent>,
     ) {
       const field = event.currentTarget.dataset.field as string;
+      posthog?.capture("user_flipped_image", {
+        flip: field,
+      });
       function getNewValue() {
         if (field === "flipVertically" || field === "flipHorizontally") {
           return !imageOptions[field];
@@ -350,6 +356,9 @@ function App() {
         id: nanoId,
         direction: GlassesDirection,
       ) {
+        posthog?.capture("user_changed_glasses_direction", {
+          direction,
+        });
         const index = glassesList.findIndex(byId(id));
         if (index === -1) {
           return;
@@ -359,6 +368,9 @@ function App() {
         setGlassesList(newGlassesList);
       }
       function handleGlassesStyleChange(id: nanoId, styleUrl: string) {
+        posthog?.capture("user_changed_glasses_style", {
+          styleUrl,
+        });
         const index = glassesList.findIndex(byId(id));
         if (index === -1) {
           return;
@@ -376,6 +388,9 @@ function App() {
           return;
         }
         const field = event.currentTarget.dataset.field as string;
+        posthog?.capture("user_flipped_glasses", {
+          flip: field,
+        });
         const newGlassesList = [...glassesList];
         if (field !== "flipHorizontally" && field !== "flipVertically") {
           return;
@@ -386,6 +401,7 @@ function App() {
       function handleGlassesSelectionChange(
         event: React.MouseEvent<HTMLElement, MouseEvent>,
       ) {
+        posthog?.capture("user_selected_glasses");
         const id = event.currentTarget.dataset.id as nanoId;
         const index = glassesList.findIndex(byId(id));
         if (index === -1) {
@@ -407,6 +423,7 @@ function App() {
       function handleRemoveGlasses(
         event: React.MouseEvent<HTMLElement, MouseEvent>,
       ) {
+        posthog?.capture("user_removed_glasses");
         const id = event.currentTarget.dataset.id as nanoId;
         const index = glassesList.findIndex(byId(id));
         if (index === -1) {
@@ -430,6 +447,7 @@ function App() {
     }
 
     function handleGlassesSizeChange(id: nanoId, size: Size) {
+      posthog?.capture("user_resized_glasses");
       const index = glassesList.findIndex(byId(id));
       if (index === -1) {
         return;
@@ -440,6 +458,7 @@ function App() {
     }
 
     function handleGlassesItemDragEnd({ active, over }: DragEndEvent) {
+      posthog?.capture("user_reordered_glasses");
       const oldId = active.id as nanoId;
       const newId = over?.id as nanoId;
       const oldIndex = glassesList.findIndex(byId(oldId));
@@ -452,6 +471,7 @@ function App() {
     }
 
     function handleAddGlasses() {
+      posthog?.capture("user_added_glasses");
       const newGlassesList = [...glassesList];
       newGlassesList.push(getDefaultGlasses());
       setGlassesList(newGlassesList);
