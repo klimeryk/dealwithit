@@ -5,7 +5,6 @@ import {
   FireOutlined,
   GithubOutlined,
   PlusCircleOutlined,
-  SmileOutlined,
 } from "@ant-design/icons";
 import { closestCenter, DndContext } from "@dnd-kit/core";
 import type { DragEndEvent } from "@dnd-kit/core";
@@ -21,7 +20,6 @@ import {
 import * as mpFaceDetection from "@mediapipe/face_detection";
 import * as tfjsWasm from "@tensorflow/tfjs-backend-wasm";
 import * as faceDetection from "@tensorflow-models/face-detection";
-import type { UploadProps } from "antd";
 import {
   Alert,
   Card,
@@ -33,7 +31,6 @@ import {
   Progress,
   Space,
   Typography,
-  Upload,
   Modal,
   message,
 } from "antd";
@@ -42,6 +39,7 @@ import party from "party-js";
 import { usePostHog } from "posthog-js/react";
 import { useEffect, useMemo, useState, useRef } from "react";
 
+import FileInput from "./FileInput.tsx";
 import InputImage from "./InputImage.tsx";
 import { restrictToParentWithOffset } from "./lib/drag-modifiers.ts";
 import {
@@ -57,7 +55,6 @@ import SortableGlassesItem from "./SortableGlassesItem.tsx";
 import Title from "./Title.tsx";
 
 const { Text, Link } = Typography;
-const { Dragger } = Upload;
 
 const EMOJI_GENERATION_START_MARK = "EmojiGenerationStartMark";
 const EMOJI_GENERATION_END_MARK = "EmojiGenerationEndMark";
@@ -201,40 +198,42 @@ function App() {
   }
 
   function renderFileInput() {
-    const props: UploadProps = {
-      className: "flex flex-1",
-      name: "file",
-      multiple: false,
-      accept: "image/png, image/jpeg",
-      showUploadList: false,
-      customRequest: async (info) => {
-        setStatus("LOADING");
-        const selectedFile = info.file as File;
-        setInputFile(selectedFile);
-        const detectedMode = selectedFile.name.match(/(hedgehog|posthog)/gi)
-          ? "HEDGEHOG"
-          : "NORMAL";
-        setMode(detectedMode);
+    async function handleExampleClick(
+      event: React.MouseEvent<HTMLElement, MouseEvent>,
+    ) {
+      const imageUrl = event.currentTarget.dataset.url as string;
+      const response = await fetch(imageUrl);
+      const data = await response.blob();
+      const metadata = {
+        type: "image/jpeg",
+      };
+      const file = new File([data], "example.jpg", metadata);
+      handleFileSelected(file);
+    }
+    async function handleFileSelected(selectedFile: File) {
+      setStatus("LOADING");
+      setInputFile(selectedFile);
+      const detectedMode = selectedFile.name.match(/(hedgehog|posthog)/gi)
+        ? "HEDGEHOG"
+        : "NORMAL";
+      setMode(detectedMode);
 
-        posthog?.capture("user_selected_input_file", {
-          mode: detectedMode,
-          fileType: selectedFile.type,
-        });
+      posthog?.capture("user_selected_input_file", {
+        mode: detectedMode,
+        fileType: selectedFile.type,
+      });
 
-        const selectedFileAsDataUrl = await getDataUrl(selectedFile);
-        setInputImageDataUrl(selectedFileAsDataUrl);
-        setStatus("DETECTING");
-      },
-    };
+      const selectedFileAsDataUrl = await getDataUrl(selectedFile);
+      setInputImageDataUrl(selectedFileAsDataUrl);
+      setStatus("DETECTING");
+    }
+
     return (
-      <Dragger disabled={status === "LOADING"} {...props}>
-        <p className="ant-upload-drag-icon">
-          <SmileOutlined />
-        </p>
-        <p className="ant-upload-text">
-          Click or drag file to this area to start!
-        </p>
-      </Dragger>
+      <FileInput
+        disabled={status === "LOADING"}
+        onExampleClick={handleExampleClick}
+        onFileSelected={handleFileSelected}
+      />
     );
   }
 
