@@ -5,7 +5,7 @@ Fully client-side Deal With It emoji generator hosted at https://emoji.build/dea
 ## Over-engineered features
 
 - All operations done fully client-side - no backend, no private data leaves your browser.
-- Uses [Tensorflow.js' face-detection model](https://github.com/tensorflow/tfjs-models/tree/master/face-detection) to automatically scale and position glasses on the detected faces.
+- Uses [MediaPipe Face Detector task](https://ai.google.dev/edge/mediapipe/solutions/vision/face_detector) to automatically scale and position glasses on the detected faces.
 - Extensive customization options for glasses:
   - Placement of glasses anywhere on the input image (including slightly going outside it).
   - Change the size of glasses.
