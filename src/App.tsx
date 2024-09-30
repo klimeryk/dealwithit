@@ -1,5 +1,4 @@
 import "jimp/browser/lib/jimp.js";
-import "@tensorflow/tfjs-backend-webgl";
 import {
   DownloadOutlined,
   FireOutlined,
@@ -17,9 +16,7 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import * as mpFaceDetection from "@mediapipe/face_detection";
-import * as tfjsWasm from "@tensorflow/tfjs-backend-wasm";
-import * as faceDetection from "@tensorflow-models/face-detection";
+import { FaceDetector, FilesetResolver } from "@mediapipe/tasks-vision";
 import {
   Alert,
   Card,
@@ -59,24 +56,20 @@ const { Text, Link } = Typography;
 const EMOJI_GENERATION_START_MARK = "EmojiGenerationStartMark";
 const EMOJI_GENERATION_END_MARK = "EmojiGenerationEndMark";
 
-tfjsWasm.setWasmPaths(
-  `https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm@${tfjsWasm.version_wasm}/dist/`,
-);
-
-let detector: faceDetection.FaceDetector;
-
-async function loadFaceDetection() {
-  detector = await faceDetection.createDetector(
-    faceDetection.SupportedModels.MediaPipeFaceDetector,
-    {
-      runtime: "mediapipe",
-      modelType: "full",
-      maxFaces: 1,
-      solutionPath: `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection@${mpFaceDetection.VERSION}`,
-    },
+let faceDetector: FaceDetector;
+const initializefaceDetector = async () => {
+  const vision = await FilesetResolver.forVisionTasks(
+    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm",
   );
-}
-loadFaceDetection();
+  faceDetector = await FaceDetector.createFromOptions(vision, {
+    baseOptions: {
+      modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite`,
+      delegate: "GPU",
+    },
+    runningMode: "IMAGE",
+  });
+};
+initializefaceDetector();
 
 function getDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -265,7 +258,7 @@ function App() {
       if (!inputImageRef.current) {
         return;
       }
-      const faces = await detector.estimateFaces(inputImageRef.current);
+      const faces = faceDetector.detect(inputImageRef.current).detections;
       posthog?.capture("face_detection_done", {
         numberOfFaces: faces.length,
       });
@@ -282,6 +275,11 @@ function App() {
 
       const newGlassesList: Glasses[] = [];
       for (const face of faces) {
+        for (const keypoint of face.keypoints) {
+          keypoint.x *= inputImageRef.current.naturalWidth;
+          keypoint.y *= inputImageRef.current.naturalHeight;
+        }
+
         const newGlasses =
           faces.length === 1
             ? getDefaultGlasses()
@@ -290,7 +288,7 @@ function App() {
         const originalEyesDistance = getEyesDistance(newGlasses);
         const eyesDistance = Math.sqrt(
           Math.pow(scaleY * (face.keypoints[0].y - face.keypoints[1].y), 2) +
-          Math.pow(scaleX * (face.keypoints[0].x - face.keypoints[1].x), 2),
+            Math.pow(scaleX * (face.keypoints[0].x - face.keypoints[1].x), 2),
         );
         const glassesScale = eyesDistance / originalEyesDistance;
         newGlasses.size.width = originalGlassesSize.width * glassesScale;
@@ -305,7 +303,7 @@ function App() {
           x: Math.abs(noseX * scaleX - noseOffset.x * glassesScaleX),
           y: Math.abs(
             (face.keypoints[0].y + noseY) * scaleY -
-            noseOffset.y * glassesScaleY,
+              noseOffset.y * glassesScaleY,
           ),
         };
 
