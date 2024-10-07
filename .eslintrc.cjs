@@ -20,6 +20,7 @@ module.exports = {
       'error',
       {
         'groups': ['builtin', 'external', 'parent', 'sibling', 'index'],
+        'named': true,
         'newlines-between': 'always',
         'alphabetize': {
           'order': 'asc',
