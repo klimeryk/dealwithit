@@ -97,7 +97,7 @@ function SortableGlassesItem({
             {...attributes}
             {...listeners}
           />
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Select
               title="Style of glasses"
               className="w-24"
@@ -136,7 +136,7 @@ function SortableGlassesItem({
             />
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap justify-end">
           <Button
             title="Highlight this instance of glasses on preview - this is only to help you find them, it does not affect output"
             size="small"

@@ -4,6 +4,7 @@ import {
   FireOutlined,
   GithubOutlined,
   PlusCircleOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 import { closestCenter, DndContext } from "@dnd-kit/core";
 import type { DragEndEvent } from "@dnd-kit/core";
@@ -42,6 +43,7 @@ import { detectFaces } from "./lib/face-detection.ts";
 import { getDefaultGlasses } from "./lib/glasses.ts";
 import { byId } from "./lib/id-utils.ts";
 import { generateOutputFilename, getSuccessMessage } from "./lib/utils.ts";
+import SettingsDrawer from "./SettingsDrawer.tsx";
 import SortableGlassesItem from "./SortableGlassesItem.tsx";
 import Title from "./Title.tsx";
 
@@ -71,6 +73,7 @@ function App() {
   const [status, setStatus] = useState<
     "START" | "LOADING" | "DETECTING" | "READY" | "GENERATING" | "DONE"
   >("START");
+  const [isDrawerOpen, setDrawerOpen] = useState(false);
   const [successCount, setSuccessCount] = useState(0);
   const [inputFile, setInputFile] = useState<File>();
   const [inputImageDataUrl, setInputImageDataUrl] = useState("");
@@ -586,6 +589,14 @@ function App() {
     );
   }
 
+  function onOpenDrawer() {
+    setDrawerOpen(true);
+  }
+
+  function handleDrawerClose() {
+    setDrawerOpen(false);
+  }
+
   function closeModal() {
     posthog?.capture("user_closed_download_modal");
     setStatus("READY");
@@ -625,8 +636,14 @@ function App() {
       <div className="relative py-3 sm:max-w-xl sm:mx-auto">
         {contextHolder}
         <div className="relative p-10 bg-white dark:bg-slate-900 shadow-lg sm:rounded-3xl">
-          <div className="grid grid-cols-3 gap-4">
-            <div className="col-span-2">
+          <Button
+            icon={<SettingOutlined />}
+            shape="circle"
+            className="absolute right-0 top-0 mt-2 me-2"
+            onClick={onOpenDrawer}
+          />
+          <div className="sm:grid grid-cols-3 gap-4">
+            <div className="col-span-2 mb-4 sm:mb-0">
               {shouldRenderFileInput ? renderFileInput() : renderInputImage()}
             </div>
             {renderForm()}
@@ -654,23 +671,29 @@ function App() {
         </div>
       </div>
       <div className="text-center">
-        <Text type="secondary">
-          Made with passion by{" "}
-          <Link href="https://klimer.eu/" target="_blank">
-            Igor Klimer
-          </Link>
-          . Source code on
-          <Link
-            className="ms-2"
-            href="https://github.com/klimeryk/dealwithit"
-            target="_blank"
-          >
-            <GithubOutlined className="mr-1" />
-            GitHub
-          </Link>
-          .
+        <Text className="sm:flex justify-center gap-1" type="secondary">
+          <div>
+            Made with passion by{" "}
+            <Link href="https://klimer.eu/" target="_blank">
+              Igor Klimer
+            </Link>
+            .
+          </div>
+          <div>
+            Source code on
+            <Link
+              className="ms-2"
+              href="https://github.com/klimeryk/dealwithit"
+              target="_blank"
+            >
+              <GithubOutlined className="mr-1" />
+              GitHub
+            </Link>
+            .
+          </div>
         </Text>
       </div>
+      <SettingsDrawer isOpen={isDrawerOpen} onClose={handleDrawerClose} />
     </>
   );
 }

@@ -1,6 +1,18 @@
-import { MoonOutlined, SunOutlined } from "@ant-design/icons";
-import { ConfigProvider, Segmented, theme } from "antd";
-import { useEffect, useState } from "react";
+import { ConfigProvider, theme } from "antd";
+import { createContext, useEffect, useState } from "react";
+
+type ThemeContextType = {
+  setTheme: (theme: string) => void;
+  theme: string;
+};
+
+const defaultContextValue = {
+  setTheme: () => {},
+  theme: "",
+};
+
+export const ThemeContext =
+  createContext<ThemeContextType>(defaultContextValue);
 
 type Props = {
   children: React.ReactNode;
@@ -21,7 +33,7 @@ function getInitialThemeModePreference() {
   return window.getComputedStyle(document.documentElement).content;
 }
 
-function ThemeSwitcher({ children }: Props) {
+export function ThemeSwitcher({ children }: Props) {
   const [themeMode, setThemeMode] = useState(getInitialThemeModePreference());
   const isDarkMode = themeMode === "dark";
   useEffect(() => {
@@ -44,18 +56,11 @@ function ThemeSwitcher({ children }: Props) {
         algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
       }}
     >
-      <Segmented
-        className="absolute top-0 right-0 mr-2 mt-2"
-        onChange={onThemeModeChange}
-        defaultValue={themeMode}
-        options={[
-          { value: "light", icon: <SunOutlined /> },
-          { value: "dark", icon: <MoonOutlined /> },
-        ]}
-      />
-      {children}
+      <ThemeContext.Provider
+        value={{ setTheme: onThemeModeChange, theme: themeMode }}
+      >
+        {children}
+      </ThemeContext.Provider>
     </ConfigProvider>
   );
 }
-
-export default ThemeSwitcher;
