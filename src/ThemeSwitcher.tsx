@@ -1,40 +1,14 @@
 import { ConfigProvider, theme } from "antd";
-import { createContext, useEffect, useState } from "react";
+import { useEffect } from "react";
 
-type ThemeContextType = {
-  setTheme: (theme: string) => void;
-  theme: string;
-};
-
-const defaultContextValue = {
-  setTheme: () => {},
-  theme: "",
-};
-
-export const ThemeContext =
-  createContext<ThemeContextType>(defaultContextValue);
+import { useBoundStore } from "./store/index.ts";
 
 type Props = {
   children: React.ReactNode;
 };
 
-function getInitialThemeModePreference() {
-  const savedThemeMode = localStorage.getItem("theme");
-  if (savedThemeMode) {
-    return savedThemeMode;
-  }
-
-  if (window.matchMedia) {
-    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      return "dark";
-    }
-  }
-
-  return window.getComputedStyle(document.documentElement).content;
-}
-
 export function ThemeSwitcher({ children }: Props) {
-  const [themeMode, setThemeMode] = useState(getInitialThemeModePreference());
+  const themeMode = useBoundStore((state) => state.themeMode);
   const isDarkMode = themeMode === "dark";
   useEffect(() => {
     if (isDarkMode) {
@@ -46,21 +20,13 @@ export function ThemeSwitcher({ children }: Props) {
     }
   }, [isDarkMode]);
 
-  function onThemeModeChange(newThemeMode: string) {
-    setThemeMode(newThemeMode);
-  }
-
   return (
     <ConfigProvider
       theme={{
         algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
       }}
     >
-      <ThemeContext.Provider
-        value={{ setTheme: onThemeModeChange, theme: themeMode }}
-      >
-        {children}
-      </ThemeContext.Provider>
+      {children}
     </ConfigProvider>
   );
 }

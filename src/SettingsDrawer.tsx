@@ -1,8 +1,7 @@
 import { MoonOutlined, SunOutlined } from "@ant-design/icons";
 import { Drawer, Segmented, Typography } from "antd";
-import { useContext } from "react";
 
-import { ThemeContext } from "./ThemeSwitcher.tsx";
+import { useBoundStore } from "./store/index.ts";
 
 const { Link, Paragraph, Title } = Typography;
 
@@ -12,7 +11,8 @@ interface SettingsDrawerProps {
 }
 
 function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps) {
-  const { setTheme, theme } = useContext(ThemeContext);
+  const theme = useBoundStore((state) => state.themeMode);
+  const setTheme = useBoundStore((state) => state.setThemeMode);
   return (
     <Drawer title="Settings and help" onClose={onClose} open={isOpen}>
       <Title level={4}>Settings</Title>
