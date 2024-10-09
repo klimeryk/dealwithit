@@ -148,7 +148,7 @@ function GlassesDraggable({
 
   return (
     <span
-      className="absolute w-1/2 left-0 top-0"
+      className="absolute w-1/2 left-0 top-0 touch-none"
       ref={setDraggableRef}
       style={glassesStyle}
     >

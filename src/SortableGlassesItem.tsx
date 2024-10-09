@@ -85,7 +85,7 @@ function SortableGlassesItem({
     <li
       ref={setNodeRef}
       style={style}
-      className="py-2 pe-2 text-sm font-medium text-gray-800 last:rounded-b-md dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+      className="touch-none py-2 pe-2 text-sm font-medium text-gray-800 last:rounded-b-md dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
     >
       <div className="flex justify-between w-full">
         <div className="flex">
