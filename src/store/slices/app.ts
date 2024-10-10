@@ -20,6 +20,9 @@ function initializePosthog() {
   if (import.meta.env.DEV) {
     posthog.debug();
   }
+  if (!posthog.has_opted_in_capturing()) {
+    posthog.opt_out_capturing();
+  }
   return posthog;
 }
 

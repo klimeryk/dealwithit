@@ -1,5 +1,5 @@
 import { MoonOutlined, SunOutlined } from "@ant-design/icons";
-import { Drawer, Segmented, Typography } from "antd";
+import { Drawer, Form, Segmented, Switch, Typography } from "antd";
 
 import { useBoundStore } from "./store/index.ts";
 
@@ -11,8 +11,16 @@ interface SettingsDrawerProps {
 }
 
 function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps) {
+  const posthog = useBoundStore((state) => state.posthog);
   const theme = useBoundStore((state) => state.themeMode);
   const setTheme = useBoundStore((state) => state.setThemeMode);
+  function handleTrackingChange(isEnabled: boolean) {
+    if (isEnabled) {
+      posthog.opt_in_capturing();
+    } else {
+      posthog.opt_out_capturing();
+    }
+  }
   return (
     <Drawer title="Settings and help" onClose={onClose} open={isOpen}>
       <Title level={4}>Settings</Title>
@@ -24,9 +32,17 @@ function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps) {
           { label: "Dark mode", value: "dark", icon: <MoonOutlined /> },
         ]}
       />
-      <Title className="mt-4" level={4}>
-        About
-      </Title>
+      <Form.Item
+        className="mb-2 mt-2"
+        label="Anonymous analytics"
+        tooltip="Uses open-source PostHog project to help me figure out how users are interacting with the app. Totally optional, but this anonymous data helps me improve the app if you enable it."
+      >
+        <Switch
+          defaultChecked={posthog.has_opted_in_capturing()}
+          onChange={handleTrackingChange}
+        />
+      </Form.Item>
+      <Title level={4}>About</Title>
       <Paragraph>
         <ul>
           <li>
