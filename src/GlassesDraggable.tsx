@@ -10,7 +10,7 @@ import {
 import type { DragMoveEvent } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { usePostHog } from "posthog-js/react";
-import { useState } from "react";
+import { CSSProperties, useState } from "react";
 
 import { getAspectRatio } from "./lib/glasses.ts";
 import { getFlipTransform } from "./lib/utils.ts";
@@ -122,10 +122,12 @@ function GlassesDraggable({
     clipPath: `inset(${clipPath.top}px ${clipPath.right}px ${clipPath.bottom}px ${clipPath.left}px)`,
   };
 
-  const imageStyle = {
+  const imageStyle: CSSProperties = {
     transform: getFlipTransform(glasses),
     width: `${glasses.size.width}px`,
     height: `${glasses.size.height}px`,
+    WebkitUserSelect: "none",
+    WebkitTouchCallout: "none",
   };
 
   return (
