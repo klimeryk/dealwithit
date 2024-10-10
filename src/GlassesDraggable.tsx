@@ -1,11 +1,12 @@
-import { useDraggable } from "@dnd-kit/core";
+import { DndContext, useDraggable } from "@dnd-kit/core";
+import type { DragMoveEvent } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import { Button } from "antd";
-import { useCallback, useEffect, useState } from "react";
+import { usePostHog } from "posthog-js/react";
+import { useState } from "react";
 
-import HandleCorner from "./icons/HandleCorner.tsx";
 import { getAspectRatio } from "./lib/glasses.ts";
 import { getFlipTransform } from "./lib/utils.ts";
+import ResizeHandle from "./ResizeHandle.tsx";
 
 interface GlassesDraggableProps {
   glasses: Glasses;
@@ -29,75 +30,42 @@ function GlassesDraggable({
     id: glasses.id,
   });
 
-  const [isResizing, setIsResizing] = useState(false);
+  const posthog = usePostHog();
+
   const [startSize, setStartSize] = useState({ width: 0, height: 0 });
-  const [startPos, setStartPos] = useState({ x: 0, y: 0 });
 
-  const handleMouseDown = (
-    event: React.MouseEvent<HTMLElement, MouseEvent>,
-  ) => {
-    event.preventDefault();
-    setIsResizing(true);
+  function handleDragStart() {
     setStartSize(glasses.size);
-    setStartPos({ x: event.clientX, y: event.clientY });
-  };
+  }
 
-  const handleMouseMove = useCallback(
-    (event: MouseEvent) => {
-      if (!isResizing || !inputImageRef.current) {
-        return;
-      }
-
-      let newWidth = startSize.width + event.clientX - startPos.x;
-      if (newWidth < MIN_WIDTH) {
-        newWidth = MIN_WIDTH;
-      }
-      const maxWidthRelativeToParent =
-        inputImageRef.current.width - glasses.coordinates.x;
-      if (newWidth > maxWidthRelativeToParent) {
-        newWidth = maxWidthRelativeToParent;
-      }
-      let newHeight = newWidth / getAspectRatio(glasses.styleUrl);
-      const maxHeightRelativeToParent =
-        inputImageRef.current.height - glasses.coordinates.y;
-      if (newHeight > maxHeightRelativeToParent) {
-        newHeight = maxHeightRelativeToParent;
-        newWidth = glasses.size.width;
-      }
-
-      onSizeChange(glasses.id, { width: newWidth, height: newHeight });
-    },
-    [
-      glasses.id,
-      glasses.coordinates,
-      glasses.size,
-      glasses.styleUrl,
-      inputImageRef,
-      isResizing,
-      startSize,
-      startPos,
-      onSizeChange,
-    ],
-  );
-
-  const handleMouseUp = () => {
-    setIsResizing(false);
-  };
-
-  useEffect(() => {
-    if (isResizing) {
-      window.addEventListener("mousemove", handleMouseMove);
-      window.addEventListener("mouseup", handleMouseUp);
-    } else {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
+  function handleDragMove({ delta }: DragMoveEvent) {
+    if (!inputImageRef.current) {
+      return;
     }
 
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [isResizing, handleMouseMove]);
+    let newWidth = startSize.width + delta.x;
+    if (newWidth < MIN_WIDTH) {
+      newWidth = MIN_WIDTH;
+    }
+    const maxWidthRelativeToParent =
+      inputImageRef.current.width - glasses.coordinates.x;
+    if (newWidth > maxWidthRelativeToParent) {
+      newWidth = maxWidthRelativeToParent;
+    }
+    let newHeight = newWidth / getAspectRatio(glasses.styleUrl);
+    const maxHeightRelativeToParent =
+      inputImageRef.current.height - glasses.coordinates.y;
+    if (newHeight > maxHeightRelativeToParent) {
+      newHeight = maxHeightRelativeToParent;
+      newWidth = glasses.size.width;
+    }
+
+    onSizeChange(glasses.id, { width: newWidth, height: newHeight });
+  }
+
+  function handleDragEnd() {
+    posthog?.capture("user_resized_glasses");
+  }
 
   const clipPath = {
     top: 0,
@@ -159,19 +127,13 @@ function GlassesDraggable({
         {...attributes}
         {...listeners}
       />
-      <Button
-        icon={<HandleCorner />}
-        type="text"
-        onMouseDown={handleMouseDown}
-        style={{
-          position: "absolute",
-          bottom: 0,
-          right: 0,
-          width: "10px",
-          height: "10px",
-          cursor: "nwse-resize",
-        }}
-      />
+      <DndContext
+        onDragStart={handleDragStart}
+        onDragMove={handleDragMove}
+        onDragEnd={handleDragEnd}
+      >
+        <ResizeHandle item={glasses} />
+      </DndContext>
     </span>
   );
 }

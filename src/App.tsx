@@ -379,7 +379,6 @@ function App() {
     }
 
     function handleGlassesSizeChange(id: nanoId, size: Size) {
-      posthog?.capture("user_resized_glasses");
       const index = glassesList.findIndex(byId(id));
       if (index === -1) {
         return;
