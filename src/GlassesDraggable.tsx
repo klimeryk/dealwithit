@@ -1,16 +1,8 @@
-import {
-  DndContext,
-  KeyboardSensor,
-  MouseSensor,
-  TouchSensor,
-  useDraggable,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
+import { DndContext, useDraggable } from "@dnd-kit/core";
 import type { DragMoveEvent } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { usePostHog } from "posthog-js/react";
-import { CSSProperties, useState } from "react";
+import { useState } from "react";
 
 import { getAspectRatio } from "./lib/glasses.ts";
 import { getFlipTransform } from "./lib/utils.ts";
@@ -37,12 +29,6 @@ function GlassesDraggable({
   } = useDraggable({
     id: glasses.id,
   });
-
-  const sensors = useSensors(
-    useSensor(MouseSensor),
-    useSensor(TouchSensor),
-    useSensor(KeyboardSensor),
-  );
 
   const posthog = usePostHog();
 
@@ -122,12 +108,10 @@ function GlassesDraggable({
     clipPath: `inset(${clipPath.top}px ${clipPath.right}px ${clipPath.bottom}px ${clipPath.left}px)`,
   };
 
-  const imageStyle: CSSProperties = {
+  const imageStyle = {
     transform: getFlipTransform(glasses),
     width: `${glasses.size.width}px`,
     height: `${glasses.size.height}px`,
-    WebkitUserSelect: "none",
-    WebkitTouchCallout: "none",
   };
 
   return (
@@ -147,7 +131,6 @@ function GlassesDraggable({
         onDragStart={handleDragStart}
         onDragMove={handleDragMove}
         onDragEnd={handleDragEnd}
-        sensors={sensors}
       >
         <ResizeHandle item={glasses} />
       </DndContext>

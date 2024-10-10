@@ -34,7 +34,6 @@ function InputImage({
 }: InputImageProps) {
   const imageStyle = {
     transform: getFlipTransform(imageOptions),
-    touchAction: "none",
   };
 
   function renderGlasses(glasses: Glasses) {
