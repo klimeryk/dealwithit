@@ -9,26 +9,23 @@ import glassesSymmetricalImageUrl from "./assets/glasses-symmetrical.png";
 import glassesImageUrl from "./assets/glasses.png";
 import FlipH from "./icons/FlipH.tsx";
 import FlipV from "./icons/FlipV.tsx";
+import { useBoundStore } from "./store/index.ts";
 
 interface SortableGlassesItemProps {
   glasses: Glasses;
-  onDirectionChange: (id: nanoId, direction: GlassesDirection) => void;
-  onFlipChange: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
-  onSelectionChange: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
-  onStyleChange: (id: nanoId, style: string) => void;
-  onRemove: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
 }
 
-function SortableGlassesItem({
-  glasses,
-  onDirectionChange,
-  onFlipChange,
-  onSelectionChange,
-  onStyleChange,
-  onRemove,
-}: SortableGlassesItemProps) {
+function SortableGlassesItem({ glasses }: SortableGlassesItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: glasses.id });
+
+  const flipGlasses = useBoundStore((state) => state.flip);
+  const removeGlasses = useBoundStore((state) => state.remove);
+  const selectGlasses = useBoundStore((state) => state.select);
+  const updateGlassesDirection = useBoundStore(
+    (state) => state.updateDirection,
+  );
+  const updateGlassesStyle = useBoundStore((state) => state.updateStyle);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -36,11 +33,32 @@ function SortableGlassesItem({
   };
 
   function handleDirectionChange(value: GlassesDirection) {
-    onDirectionChange(glasses.id, value);
+    updateGlassesDirection(glasses.id, value);
   }
 
   function handleStyleChange(value: string) {
-    onStyleChange(glasses.id, value);
+    updateGlassesStyle(glasses.id, value);
+  }
+
+  function handleSelectionChange(
+    event: React.MouseEvent<HTMLElement, MouseEvent>,
+  ) {
+    const id = event.currentTarget.dataset.id as nanoId;
+    selectGlasses(id);
+  }
+
+  function handleFlipChange(event: React.MouseEvent<HTMLElement, MouseEvent>) {
+    const id = event.currentTarget.dataset.id as nanoId;
+    const field = event.currentTarget.dataset.field as string;
+    if (field !== "flipHorizontally" && field !== "flipVertically") {
+      return;
+    }
+    flipGlasses(id, field);
+  }
+
+  function handleRemove(event: React.MouseEvent<HTMLElement, MouseEvent>) {
+    const id = event.currentTarget.dataset.id as nanoId;
+    removeGlasses(id);
   }
 
   const styleOptions = [
@@ -123,7 +141,7 @@ function SortableGlassesItem({
               icon={<FlipH />}
               data-id={glasses.id}
               data-field="flipHorizontally"
-              onClick={onFlipChange}
+              onClick={handleFlipChange}
             />
             <Button
               title="Flip glasses vertically"
@@ -132,7 +150,7 @@ function SortableGlassesItem({
               icon={<FlipV />}
               data-id={glasses.id}
               data-field="flipVertically"
-              onClick={onFlipChange}
+              onClick={handleFlipChange}
             />
           </div>
         </div>
@@ -143,14 +161,14 @@ function SortableGlassesItem({
             type={glasses.isSelected ? "primary" : "default"}
             icon={<EyeOutlined />}
             data-id={glasses.id}
-            onClick={onSelectionChange}
+            onClick={handleSelectionChange}
           />
           <Button
             data-id={glasses.id}
             danger
             size="small"
             icon={<DeleteOutlined />}
-            onClick={onRemove}
+            onClick={handleRemove}
           />
         </div>
       </div>

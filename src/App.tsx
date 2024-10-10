@@ -3,24 +3,10 @@ import {
   DownloadOutlined,
   FireOutlined,
   GithubOutlined,
-  PlusCircleOutlined,
   SettingOutlined,
 } from "@ant-design/icons";
-import { closestCenter, DndContext } from "@dnd-kit/core";
-import type { DragEndEvent } from "@dnd-kit/core";
 import {
-  restrictToParentElement,
-  restrictToVerticalAxis,
-} from "@dnd-kit/modifiers";
-import {
-  arrayMove,
-  SortableContext,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import {
-  Alert,
   Button,
-  Card,
   Form,
   InputNumber,
   message,
@@ -38,13 +24,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import FileInput from "./FileInput.tsx";
 import InputImage from "./InputImage.tsx";
-import { restrictToParentWithOffset } from "./lib/drag-modifiers.ts";
-import { detectFaces } from "./lib/face-detection.ts";
-import { getDefaultGlasses } from "./lib/glasses.ts";
-import { byId } from "./lib/id-utils.ts";
 import { generateOutputFilename, getSuccessMessage } from "./lib/utils.ts";
 import SettingsDrawer from "./SettingsDrawer.tsx";
-import SortableGlassesItem from "./SortableGlassesItem.tsx";
+import SortableGlassesList from "./SortableGlassesList.tsx";
+import { useBoundStore } from "./store/index.ts";
 import Title from "./Title.tsx";
 
 const { Text, Link } = Typography;
@@ -70,16 +53,17 @@ function App() {
     [],
   );
   const [messageApi, contextHolder] = message.useMessage();
-  const [status, setStatus] = useState<
-    "START" | "LOADING" | "DETECTING" | "READY" | "GENERATING" | "DONE"
-  >("START");
   const [isDrawerOpen, setDrawerOpen] = useState(false);
   const [successCount, setSuccessCount] = useState(0);
   const [inputFile, setInputFile] = useState<File>();
   const [inputImageDataUrl, setInputImageDataUrl] = useState("");
   const [outputImage, setOutputImage] = useState<Blob>();
   const [outputImageDataUrl, setOutputImageDataUrl] = useState("");
-  const [glassesList, setGlassesList] = useState<Glasses[]>([]);
+  const status = useBoundStore((state) => state.status);
+  const setStatus = useBoundStore((state) => state.setStatus);
+  const glassesList = useBoundStore((state) => state.glassesList);
+  const removeAllGlasses = useBoundStore((state) => state.removeAll);
+  const putGlassesOnFaces = useBoundStore((state) => state.putGlassesOnFaces);
   const [imageOptions, setImageOptions] = useState<ImageOptions>({
     flipVertically: false,
     flipHorizontally: false,
@@ -217,7 +201,7 @@ function App() {
     setInputImageDataUrl("");
     setInputFile(undefined);
     setImageOptions({ flipVertically: false, flipHorizontally: false });
-    setGlassesList([]);
+    removeAllGlasses();
   }
 
   function renderInputImage() {
@@ -240,11 +224,7 @@ function App() {
       if (!inputImageRef.current) {
         return;
       }
-      const newGlassesList = detectFaces(inputImageRef.current);
-      posthog?.capture("face_detection_done", {
-        numberOfGlasses: newGlassesList.length,
-      });
-      setGlassesList(newGlassesList);
+      putGlassesOnFaces(inputImageRef.current);
       setStatus("READY");
     }
 
@@ -265,222 +245,18 @@ function App() {
       );
     }
 
-    function handleDragEnd({ delta, active }: DragEndEvent) {
-      posthog?.capture("user_dragged_glasses");
-
-      setGlassesList((currentGlassesList) => {
-        const index = currentGlassesList.findIndex(byId(active.id as nanoId));
-        if (index === -1) {
-          return currentGlassesList;
-        }
-        const newGlassesList = [...currentGlassesList];
-        const { x, y } = newGlassesList[index].coordinates;
-        newGlassesList[index].coordinates = {
-          x: x + delta.x,
-          y: y + delta.y,
-        };
-        return newGlassesList;
-      });
-    }
-
-    function renderGlassesItem(glasses: Glasses) {
-      function handleGlassesDirectionChange(
-        id: nanoId,
-        direction: GlassesDirection,
-      ) {
-        posthog?.capture("user_changed_glasses_direction", {
-          direction,
-        });
-        const index = glassesList.findIndex(byId(id));
-        if (index === -1) {
-          return;
-        }
-        const newGlassesList = [...glassesList];
-        newGlassesList[index].direction = direction;
-        setGlassesList(newGlassesList);
-      }
-      function handleGlassesStyleChange(id: nanoId, styleUrl: string) {
-        posthog?.capture("user_changed_glasses_style", {
-          styleUrl,
-        });
-        const index = glassesList.findIndex(byId(id));
-        if (index === -1) {
-          return;
-        }
-        const newGlassesList = [...glassesList];
-        newGlassesList[index].styleUrl = styleUrl;
-        setGlassesList(newGlassesList);
-      }
-      function handleGlassesFlipChange(
-        event: React.MouseEvent<HTMLElement, MouseEvent>,
-      ) {
-        const id = event.currentTarget.dataset.id as nanoId;
-        const index = glassesList.findIndex(byId(id));
-        if (index === -1) {
-          return;
-        }
-        const field = event.currentTarget.dataset.field as string;
-        posthog?.capture("user_flipped_glasses", {
-          flip: field,
-        });
-        const newGlassesList = [...glassesList];
-        if (field !== "flipHorizontally" && field !== "flipVertically") {
-          return;
-        }
-        newGlassesList[index][field] = !newGlassesList[index][field];
-        setGlassesList(newGlassesList);
-      }
-      function handleGlassesSelectionChange(
-        event: React.MouseEvent<HTMLElement, MouseEvent>,
-      ) {
-        posthog?.capture("user_selected_glasses");
-        const id = event.currentTarget.dataset.id as nanoId;
-        const index = glassesList.findIndex(byId(id));
-        if (index === -1) {
-          return;
-        }
-        let previouslySelectedId;
-        const newGlassesList = glassesList.map((glasses) => {
-          if (glasses.isSelected) {
-            previouslySelectedId = glasses.id;
-          }
-          glasses.isSelected = false;
-          return glasses;
-        });
-        if (previouslySelectedId !== id) {
-          newGlassesList[index].isSelected = true;
-        }
-        setGlassesList(newGlassesList);
-      }
-      function handleRemoveGlasses(
-        event: React.MouseEvent<HTMLElement, MouseEvent>,
-      ) {
-        posthog?.capture("user_removed_glasses");
-        const id = event.currentTarget.dataset.id as nanoId;
-        const index = glassesList.findIndex(byId(id));
-        if (index === -1) {
-          return;
-        }
-        const newGlassesList = [...glassesList];
-        newGlassesList.splice(index, 1);
-        setGlassesList(newGlassesList);
-      }
-      return (
-        <SortableGlassesItem
-          key={glasses.id}
-          glasses={glasses}
-          onDirectionChange={handleGlassesDirectionChange}
-          onFlipChange={handleGlassesFlipChange}
-          onSelectionChange={handleGlassesSelectionChange}
-          onStyleChange={handleGlassesStyleChange}
-          onRemove={handleRemoveGlasses}
-        />
-      );
-    }
-
-    function handleGlassesSizeChange(id: nanoId, size: Size) {
-      const index = glassesList.findIndex(byId(id));
-      if (index === -1) {
-        return;
-      }
-      const newGlassesList = [...glassesList];
-      newGlassesList[index].size = size;
-      setGlassesList(newGlassesList);
-    }
-
-    function handleGlassesItemDragEnd({ active, over }: DragEndEvent) {
-      posthog?.capture("user_reordered_glasses");
-      const oldId = active.id as nanoId;
-      const newId = over?.id as nanoId;
-      const oldIndex = glassesList.findIndex(byId(oldId));
-      const newIndex = glassesList.findIndex(byId(newId));
-      if (oldIndex === -1 || newIndex === -1) {
-        return;
-      }
-      const newGlassesList = arrayMove(glassesList, oldIndex, newIndex);
-      setGlassesList(newGlassesList);
-    }
-
-    function handleAddGlasses() {
-      posthog?.capture("user_added_glasses");
-      const newGlassesList = [...glassesList];
-      newGlassesList.push(getDefaultGlasses());
-      setGlassesList(newGlassesList);
-    }
-
-    const cardStyles = {
-      body: {
-        padding: 0,
-      },
-    };
-
     return (
       <>
-        <DndContext
-          onDragEnd={handleDragEnd}
-          modifiers={[restrictToParentWithOffset]}
-        >
-          <InputImage
-            imageOptions={imageOptions}
-            inputImageDataUrl={inputImageDataUrl}
-            inputImageRef={inputImageRef}
-            glassesList={glassesList}
-            onGlassesSizeChange={handleGlassesSizeChange}
-            onInputImageError={handleInputImageError}
-            onInputImageLoad={handleInputImageLoad}
-            onImageOptionsChange={handleImageOptionsChange}
-            onRemoveInputImage={handleRemoveInputImage}
-          />
-        </DndContext>
-        <Card
-          className="mt-2"
-          size="small"
-          title="Glasses"
-          styles={cardStyles}
-          loading={status === "DETECTING"}
-          extra={
-            <Button
-              size="small"
-              icon={<PlusCircleOutlined />}
-              onClick={handleAddGlasses}
-            >
-              Add
-            </Button>
-          }
-        >
-          <DndContext
-            modifiers={[restrictToVerticalAxis, restrictToParentElement]}
-            collisionDetection={closestCenter}
-            onDragEnd={handleGlassesItemDragEnd}
-          >
-            <SortableContext
-              items={glassesList}
-              strategy={verticalListSortingStrategy}
-            >
-              <ul>
-                {glassesList.map(renderGlassesItem)}
-                {glassesList.length === 0 && (
-                  <Alert
-                    className="rounded-b-md"
-                    banner
-                    message="No glasses!?"
-                    description="How can you deal with it without any glasses? How about adding at least one pair?"
-                    type="warning"
-                    action={
-                      <Button
-                        size="small"
-                        icon={<PlusCircleOutlined />}
-                        onClick={handleAddGlasses}
-                      >
-                        Add
-                      </Button>
-                    }
-                  />
-                )}
-              </ul>
-            </SortableContext>
-          </DndContext>
-        </Card>
+        <InputImage
+          imageOptions={imageOptions}
+          inputImageDataUrl={inputImageDataUrl}
+          inputImageRef={inputImageRef}
+          onInputImageError={handleInputImageError}
+          onInputImageLoad={handleInputImageLoad}
+          onImageOptionsChange={handleImageOptionsChange}
+          onRemoveInputImage={handleRemoveInputImage}
+        />
+        <SortableGlassesList />
       </>
     );
   }

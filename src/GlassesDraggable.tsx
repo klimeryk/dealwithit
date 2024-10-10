@@ -7,20 +7,16 @@ import { useState } from "react";
 import { getAspectRatio } from "./lib/glasses.ts";
 import { getFlipTransform } from "./lib/utils.ts";
 import ResizeHandle from "./ResizeHandle.tsx";
+import { useBoundStore } from "./store/index.ts";
 
 interface GlassesDraggableProps {
   glasses: Glasses;
   inputImageRef: React.RefObject<HTMLImageElement>;
-  onSizeChange: (id: nanoId, size: Size) => void;
 }
 
 const MIN_WIDTH = 16;
 
-function GlassesDraggable({
-  glasses,
-  inputImageRef,
-  onSizeChange,
-}: GlassesDraggableProps) {
+function GlassesDraggable({ glasses, inputImageRef }: GlassesDraggableProps) {
   const {
     attributes,
     listeners,
@@ -30,6 +26,7 @@ function GlassesDraggable({
     id: glasses.id,
   });
 
+  const updateGlassesSize = useBoundStore((state) => state.updateSize);
   const posthog = usePostHog();
 
   const [startSize, setStartSize] = useState({ width: 0, height: 0 });
@@ -60,7 +57,7 @@ function GlassesDraggable({
       newWidth = glasses.size.width;
     }
 
-    onSizeChange(glasses.id, { width: newWidth, height: newHeight });
+    updateGlassesSize(glasses.id, { width: newWidth, height: newHeight });
   }
 
   function handleDragEnd() {

@@ -1,3 +1,11 @@
+type Status =
+  | "START"
+  | "LOADING"
+  | "DETECTING"
+  | "READY"
+  | "GENERATING"
+  | "DONE";
+
 type WithFlip = {
   flipHorizontally: boolean;
   flipVertically: boolean;
