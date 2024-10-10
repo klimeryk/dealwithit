@@ -6,8 +6,16 @@ import {
   PlusCircleOutlined,
   SettingOutlined,
 } from "@ant-design/icons";
-import { closestCenter, DndContext } from "@dnd-kit/core";
 import type { DragEndEvent } from "@dnd-kit/core";
+import {
+  closestCenter,
+  DndContext,
+  KeyboardSensor,
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
 import {
   restrictToParentElement,
   restrictToVerticalAxis,
@@ -88,6 +96,11 @@ function App() {
   const outputImageRef = useRef<null | HTMLImageElement>(null);
   const [mode, setMode] = useState<"NORMAL" | "HEDGEHOG">("NORMAL");
   const posthog = usePostHog();
+  const sensors = useSensors(
+    useSensor(MouseSensor),
+    useSensor(TouchSensor),
+    useSensor(KeyboardSensor),
+  );
 
   const [form] = Form.useForm();
   const lastFrameDelayEnabled = Form.useWatch(
@@ -419,6 +432,7 @@ function App() {
         <DndContext
           onDragEnd={handleDragEnd}
           modifiers={[restrictToParentWithOffset]}
+          sensors={sensors}
         >
           <InputImage
             imageOptions={imageOptions}
