@@ -70,7 +70,8 @@ function App() {
   });
   const inputImageRef = useRef<null | HTMLImageElement>(null);
   const outputImageRef = useRef<null | HTMLImageElement>(null);
-  const [mode, setMode] = useState<"NORMAL" | "HEDGEHOG">("NORMAL");
+  const mode = useBoundStore((state) => state.mode);
+  const setMode = useBoundStore((state) => state.setMode);
   const posthog = usePostHog();
 
   const [form] = Form.useForm();

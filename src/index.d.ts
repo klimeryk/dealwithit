@@ -1,10 +1,12 @@
-type Status =
+type AppStatus =
   | "START"
   | "LOADING"
   | "DETECTING"
   | "READY"
   | "GENERATING"
   | "DONE";
+
+type AppMode = "NORMAL" | "HEDGEHOG";
 
 type WithFlip = {
   flipHorizontally: boolean;
