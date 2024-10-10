@@ -1,4 +1,3 @@
-import { PostHogProvider } from "posthog-js/react";
 import React from "react";
 import ReactDOM from "react-dom/client";
 
@@ -13,21 +12,10 @@ declare global {
   }
 }
 
-const options = {
-  api_host: "https://jez.emoji.build",
-  ui_host: "https://eu.i.posthog.com",
-  autocapture: false,
-};
-
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <PostHogProvider
-    apiKey="phc_7SZQ8Cl3ymxNbRF8K5OLMO3VOQ51MD8Gnh6UDLU17lG"
-    options={options}
-  >
-    <React.StrictMode>
-      <ThemeSwitcher>
-        <App />
-      </ThemeSwitcher>
-    </React.StrictMode>
-  </PostHogProvider>,
+  <React.StrictMode>
+    <ThemeSwitcher>
+      <App />
+    </ThemeSwitcher>
+  </React.StrictMode>,
 );

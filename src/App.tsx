@@ -19,7 +19,6 @@ import {
 } from "antd";
 import { saveAs } from "file-saver";
 import party from "party-js";
-import { usePostHog } from "posthog-js/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import FileInput from "./FileInput.tsx";
@@ -72,7 +71,7 @@ function App() {
   const outputImageRef = useRef<null | HTMLImageElement>(null);
   const mode = useBoundStore((state) => state.mode);
   const setMode = useBoundStore((state) => state.setMode);
-  const posthog = usePostHog();
+  const posthog = useBoundStore((state) => state.posthog);
 
   const [form] = Form.useForm();
   const lastFrameDelayEnabled = Form.useWatch(
@@ -162,6 +161,9 @@ function App() {
       event: React.MouseEvent<HTMLElement, MouseEvent>,
     ) {
       const imageUrl = event.currentTarget.dataset.url as string;
+      posthog.capture("user_selected_example_image", {
+        imageUrl,
+      });
       const response = await fetch(imageUrl);
       const data = await response.blob();
       const metadata = {

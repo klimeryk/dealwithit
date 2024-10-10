@@ -1,7 +1,6 @@
 import { DndContext, useDraggable } from "@dnd-kit/core";
 import type { DragMoveEvent } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import { usePostHog } from "posthog-js/react";
 import { useState } from "react";
 
 import { getAspectRatio } from "./lib/glasses.ts";
@@ -27,7 +26,7 @@ function GlassesDraggable({ glasses, inputImageRef }: GlassesDraggableProps) {
   });
 
   const updateGlassesSize = useBoundStore((state) => state.updateSize);
-  const posthog = usePostHog();
+  const posthog = useBoundStore((state) => state.posthog);
 
   const [startSize, setStartSize] = useState({ width: 0, height: 0 });
 
@@ -61,7 +60,7 @@ function GlassesDraggable({ glasses, inputImageRef }: GlassesDraggableProps) {
   }
 
   function handleDragEnd() {
-    posthog?.capture("user_resized_glasses");
+    posthog.capture("user_resized_glasses");
   }
 
   const clipPath = {

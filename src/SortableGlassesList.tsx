@@ -10,7 +10,6 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { Alert, Button, Card } from "antd";
-import { usePostHog } from "posthog-js/react";
 
 import SortableGlassesItem from "./SortableGlassesItem.tsx";
 import { useBoundStore } from "./store/index.ts";
@@ -21,22 +20,14 @@ function SortableGlassesList() {
   const addDefaultGlasses = useBoundStore((state) => state.addDefault);
   const reorderGlasses = useBoundStore((state) => state.reorder);
 
-  const posthog = usePostHog();
-
   function renderGlassesItem(glasses: Glasses) {
     return <SortableGlassesItem key={glasses.id} glasses={glasses} />;
   }
 
   function handleGlassesItemDragEnd({ active, over }: DragEndEvent) {
-    posthog?.capture("user_reordered_glasses");
     const oldId = active.id as nanoId;
     const newId = over?.id as nanoId;
     reorderGlasses(oldId, newId);
-  }
-
-  function handleAddGlasses() {
-    posthog?.capture("user_added_glasses");
-    addDefaultGlasses();
   }
 
   const cardStyles = {
@@ -56,7 +47,7 @@ function SortableGlassesList() {
         <Button
           size="small"
           icon={<PlusCircleOutlined />}
-          onClick={handleAddGlasses}
+          onClick={addDefaultGlasses}
         >
           Add
         </Button>
@@ -84,7 +75,7 @@ function SortableGlassesList() {
                   <Button
                     size="small"
                     icon={<PlusCircleOutlined />}
-                    onClick={handleAddGlasses}
+                    onClick={addDefaultGlasses}
                   >
                     Add
                   </Button>
