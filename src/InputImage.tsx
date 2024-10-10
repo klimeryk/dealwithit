@@ -1,5 +1,7 @@
 import { DeleteOutlined } from "@ant-design/icons";
+import { useDndMonitor } from "@dnd-kit/core";
 import { Button } from "antd";
+import { useState } from "react";
 
 import GlassesDraggable from "./GlassesDraggable.tsx";
 import FlipH from "./icons/FlipH.tsx";
@@ -32,8 +34,18 @@ function InputImage({
   inputImageRef,
   glassesList,
 }: InputImageProps) {
+  const [isDragging, setDragging] = useState(false);
+  function handleDragStart() {
+    setDragging(true);
+  }
+  function handleDragEnd() {
+    setDragging(false);
+  }
+
+  useDndMonitor({ onDragStart: handleDragStart, onDragEnd: handleDragEnd });
   const imageStyle = {
     transform: getFlipTransform(imageOptions),
+    touchAction: isDragging ? "none" : "auto",
   };
 
   function renderGlasses(glasses: Glasses) {
