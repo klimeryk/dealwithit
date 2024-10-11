@@ -4,11 +4,14 @@ import type { PostHog } from "posthog-js/react";
 import { StateCreator } from "zustand";
 
 export interface AppSlice {
+  isDrawerOpen: boolean;
   messageApi: MessageInstance | undefined;
   mode: AppMode;
   posthog: PostHog;
   status: AppStatus;
+  successCount: number;
   goBackToStart: () => void;
+  setDrawerOpen: (isOpen: boolean) => void;
   setMessageApi: (messageApi: MessageInstance) => void;
   setMode: (newMode: AppMode) => void;
   setStatus: (newStatus: AppStatus) => void;
@@ -31,9 +34,11 @@ function initializePosthog() {
 }
 
 export const createAppSlice: StateCreator<AppSlice> = (set) => ({
+  isDrawerOpen: false,
   messageApi: undefined,
   mode: "NORMAL",
   status: "START",
+  successCount: 0,
   posthog: initializePosthog(),
   goBackToStart: () =>
     set(() => ({
@@ -46,6 +51,7 @@ export const createAppSlice: StateCreator<AppSlice> = (set) => ({
         flipHorizontally: false,
       },
     })),
+  setDrawerOpen: (isOpen) => set(() => ({ isDrawerOpen: isOpen })),
   setMessageApi: (messageApi) => set(() => ({ messageApi })),
   setMode: (newMode) => set(() => ({ mode: newMode })),
   setStatus: (newStatus) => set(() => ({ status: newStatus })),

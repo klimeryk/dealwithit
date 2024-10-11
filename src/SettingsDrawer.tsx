@@ -5,15 +5,17 @@ import { useBoundStore } from "./store/index.ts";
 
 const { Link, Paragraph, Title } = Typography;
 
-interface SettingsDrawerProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps) {
+function SettingsDrawer() {
+  const isOpen = useBoundStore((state) => state.isDrawerOpen);
+  const setDrawerOpen = useBoundStore((state) => state.setDrawerOpen);
   const posthog = useBoundStore((state) => state.posthog);
   const theme = useBoundStore((state) => state.themeMode);
   const setTheme = useBoundStore((state) => state.setThemeMode);
+
+  function handleClose() {
+    setDrawerOpen(false);
+  }
+
   function handleTrackingChange(isEnabled: boolean) {
     if (isEnabled) {
       posthog.opt_in_capturing();
@@ -22,7 +24,7 @@ function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps) {
     }
   }
   return (
-    <Drawer title="Settings and help" onClose={onClose} open={isOpen}>
+    <Drawer title="Settings and help" onClose={handleClose} open={isOpen}>
       <Title level={4}>Settings</Title>
       <Segmented
         onChange={setTheme}

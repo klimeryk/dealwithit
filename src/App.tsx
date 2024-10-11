@@ -1,34 +1,24 @@
 import "jimp/browser/lib/jimp.js";
-import {
-  DownloadOutlined,
-  FireOutlined,
-  GithubOutlined,
-  SettingOutlined,
-} from "@ant-design/icons";
+import { FireOutlined, SettingOutlined } from "@ant-design/icons";
 import {
   Button,
   Form,
   InputNumber,
-  Modal,
   Progress,
   Radio,
   Space,
   Switch,
-  Typography,
 } from "antd";
-import { saveAs } from "file-saver";
-import party from "party-js";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import DownloadModal from "./DownloadModal.tsx";
 import FileInput from "./FileInput.tsx";
+import Footer from "./Footer.tsx";
 import InputImage from "./InputImage.tsx";
-import { generateOutputFilename, getSuccessMessage } from "./lib/utils.ts";
 import SettingsDrawer from "./SettingsDrawer.tsx";
 import SortableGlassesList from "./SortableGlassesList.tsx";
 import { useBoundStore } from "./store/index.ts";
 import Title from "./Title.tsx";
-
-const { Text, Link } = Typography;
 
 const EMOJI_GENERATION_START_MARK = "EmojiGenerationStartMark";
 const EMOJI_GENERATION_END_MARK = "EmojiGenerationEndMark";
@@ -42,11 +32,8 @@ function App() {
     [],
   );
   const messageApi = useBoundStore((state) => state.messageApi);
-  const [isDrawerOpen, setDrawerOpen] = useState(false);
-  const [successCount, setSuccessCount] = useState(0);
+  const setDrawerOpen = useBoundStore((state) => state.setDrawerOpen);
   const inputFile = useBoundStore((state) => state.inputFile);
-  const outputImage = useBoundStore((state) => state.outputImage);
-  const outputImageDataUrl = useBoundStore((state) => state.outputImageDataUrl);
   const setOutputImage = useBoundStore((state) => state.setOutputImage);
   const status = useBoundStore((state) => state.status);
   const setStatus = useBoundStore((state) => state.setStatus);
@@ -54,7 +41,6 @@ function App() {
   const putGlassesOnFaces = useBoundStore((state) => state.putGlassesOnFaces);
   const imageOptions = useBoundStore((state) => state.imageOptions);
   const inputImageRef = useRef<null | HTMLImageElement>(null);
-  const outputImageRef = useRef<null | HTMLImageElement>(null);
   const mode = useBoundStore((state) => state.mode);
   const posthog = useBoundStore((state) => state.posthog);
 
@@ -94,7 +80,6 @@ function App() {
 
     const { gifBlob, resultDataUrl } = data;
     setOutputImage(gifBlob, resultDataUrl);
-    setSuccessCount(successCount + 1);
     setStatus("DONE");
   };
 
@@ -130,14 +115,6 @@ function App() {
 
     setProgressState(0);
     setStatus("GENERATING");
-  }
-
-  function renderOutputImage() {
-    return (
-      <div className="flex flex-col items-center">
-        <img ref={outputImageRef} src={outputImageDataUrl} />
-      </div>
-    );
   }
 
   function renderInputImage() {
@@ -267,41 +244,6 @@ function App() {
     setDrawerOpen(true);
   }
 
-  function handleDrawerClose() {
-    setDrawerOpen(false);
-  }
-
-  function closeModal() {
-    posthog?.capture("user_closed_download_modal");
-    setStatus("READY");
-  }
-
-  function downloadOutput() {
-    posthog?.capture("user_downloaded_emoji");
-    if (outputImage && inputFile) {
-      saveAs(outputImage, generateOutputFilename(inputFile));
-    }
-    closeModal();
-  }
-
-  function onModalOpenChange(open: boolean) {
-    if (open && outputImageRef.current) {
-      posthog?.capture("user_opened_download_modal");
-
-      if (mode === "HEDGEHOG") {
-        const hedgehog = document.createElement("span");
-        hedgehog.innerText = "🦔";
-        hedgehog.style.fontSize = "48px";
-        const heart = document.createElement("span");
-        heart.innerText = "💖";
-        heart.style.fontSize = "24px";
-        party.confetti(outputImageRef.current, { shapes: [hedgehog, heart] });
-      } else {
-        party.confetti(outputImageRef.current);
-      }
-    }
-  }
-
   const shouldRenderFileInput = ["START", "LOADING"].includes(status);
 
   return (
@@ -321,52 +263,11 @@ function App() {
             </div>
             {renderForm()}
           </div>
-          <Modal
-            title={getSuccessMessage(successCount)}
-            open={status === "DONE"}
-            onCancel={closeModal}
-            destroyOnClose
-            afterOpenChange={onModalOpenChange}
-            footer={[
-              <Button
-                key="download"
-                type="primary"
-                onClick={downloadOutput}
-                icon={<DownloadOutlined />}
-              >
-                Download
-              </Button>,
-            ]}
-            width={304}
-          >
-            {renderOutputImage()}
-          </Modal>
+          <DownloadModal />
         </div>
       </div>
-      <div className="text-center">
-        <Text className="sm:flex justify-center gap-1" type="secondary">
-          <div>
-            Made with passion by{" "}
-            <Link href="https://klimer.eu/" target="_blank">
-              Igor Klimer
-            </Link>
-            .
-          </div>
-          <div>
-            Source code on
-            <Link
-              className="ms-2"
-              href="https://github.com/klimeryk/dealwithit"
-              target="_blank"
-            >
-              <GithubOutlined className="mr-1" />
-              GitHub
-            </Link>
-            .
-          </div>
-        </Text>
-      </div>
-      <SettingsDrawer isOpen={isDrawerOpen} onClose={handleDrawerClose} />
+      <Footer />
+      <SettingsDrawer />
     </>
   );
 }

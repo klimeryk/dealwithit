@@ -46,7 +46,11 @@ export const createImageSlice: StateCreator<
   },
 
   setOutputImage: (imageBlob, imageDataUrl) =>
-    set(() => ({ outputImage: imageBlob, outputImageDataUrl: imageDataUrl })),
+    set(() => ({
+      outputImage: imageBlob,
+      outputImageDataUrl: imageDataUrl,
+      successCount: get().successCount + 1,
+    })),
 
   toggleImageOption: (field: keyof ImageOptions) =>
     set(
