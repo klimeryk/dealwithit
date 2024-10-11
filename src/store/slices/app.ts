@@ -1,11 +1,15 @@
+import { MessageInstance } from "antd/es/message/interface";
 import { posthog } from "posthog-js";
 import type { PostHog } from "posthog-js/react";
 import { StateCreator } from "zustand";
 
 export interface AppSlice {
+  messageApi: MessageInstance | undefined;
   mode: AppMode;
   posthog: PostHog;
   status: AppStatus;
+  goBackToStart: () => void;
+  setMessageApi: (messageApi: MessageInstance) => void;
   setMode: (newMode: AppMode) => void;
   setStatus: (newStatus: AppStatus) => void;
 }
@@ -27,9 +31,22 @@ function initializePosthog() {
 }
 
 export const createAppSlice: StateCreator<AppSlice> = (set) => ({
+  messageApi: undefined,
   mode: "NORMAL",
   status: "START",
   posthog: initializePosthog(),
+  goBackToStart: () =>
+    set(() => ({
+      status: "START",
+      inputFile: undefined,
+      inputImageDataUrl: "",
+      glassesList: [],
+      imageOptions: {
+        flipVertically: false,
+        flipHorizontally: false,
+      },
+    })),
+  setMessageApi: (messageApi) => set(() => ({ messageApi })),
   setMode: (newMode) => set(() => ({ mode: newMode })),
   setStatus: (newStatus) => set(() => ({ status: newStatus })),
 });

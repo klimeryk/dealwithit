@@ -9,7 +9,6 @@ import {
   Button,
   Form,
   InputNumber,
-  message,
   Modal,
   Progress,
   Radio,
@@ -34,15 +33,6 @@ const { Text, Link } = Typography;
 const EMOJI_GENERATION_START_MARK = "EmojiGenerationStartMark";
 const EMOJI_GENERATION_END_MARK = "EmojiGenerationEndMark";
 
-function getDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = (error) => reject(error);
-  });
-}
-
 function App() {
   const gifWorker = useMemo(
     () =>
@@ -51,26 +41,21 @@ function App() {
       }),
     [],
   );
-  const [messageApi, contextHolder] = message.useMessage();
+  const messageApi = useBoundStore((state) => state.messageApi);
   const [isDrawerOpen, setDrawerOpen] = useState(false);
   const [successCount, setSuccessCount] = useState(0);
-  const [inputFile, setInputFile] = useState<File>();
-  const [inputImageDataUrl, setInputImageDataUrl] = useState("");
-  const [outputImage, setOutputImage] = useState<Blob>();
-  const [outputImageDataUrl, setOutputImageDataUrl] = useState("");
+  const inputFile = useBoundStore((state) => state.inputFile);
+  const outputImage = useBoundStore((state) => state.outputImage);
+  const outputImageDataUrl = useBoundStore((state) => state.outputImageDataUrl);
+  const setOutputImage = useBoundStore((state) => state.setOutputImage);
   const status = useBoundStore((state) => state.status);
   const setStatus = useBoundStore((state) => state.setStatus);
   const glassesList = useBoundStore((state) => state.glassesList);
-  const removeAllGlasses = useBoundStore((state) => state.removeAll);
   const putGlassesOnFaces = useBoundStore((state) => state.putGlassesOnFaces);
-  const [imageOptions, setImageOptions] = useState<ImageOptions>({
-    flipVertically: false,
-    flipHorizontally: false,
-  });
+  const imageOptions = useBoundStore((state) => state.imageOptions);
   const inputImageRef = useRef<null | HTMLImageElement>(null);
   const outputImageRef = useRef<null | HTMLImageElement>(null);
   const mode = useBoundStore((state) => state.mode);
-  const setMode = useBoundStore((state) => state.setMode);
   const posthog = useBoundStore((state) => state.posthog);
 
   const [form] = Form.useForm();
@@ -84,7 +69,7 @@ function App() {
 
   useEffect(() => {
     if (mode === "HEDGEHOG") {
-      messageApi.info({
+      messageApi?.info({
         content: "Hello fellow hedgehog fan!",
         icon: <span className="mr-1 text-lg">🦔</span>,
       });
@@ -108,8 +93,7 @@ function App() {
     });
 
     const { gifBlob, resultDataUrl } = data;
-    setOutputImage(gifBlob);
-    setOutputImageDataUrl(resultDataUrl);
+    setOutputImage(gifBlob, resultDataUrl);
     setSuccessCount(successCount + 1);
     setStatus("DONE");
   };
@@ -156,73 +140,7 @@ function App() {
     );
   }
 
-  function renderFileInput() {
-    async function handleExampleClick(
-      event: React.MouseEvent<HTMLElement, MouseEvent>,
-    ) {
-      const imageUrl = event.currentTarget.dataset.url as string;
-      posthog.capture("user_selected_example_image", {
-        imageUrl,
-      });
-      const response = await fetch(imageUrl);
-      const data = await response.blob();
-      const metadata = {
-        type: "image/jpeg",
-      };
-      const file = new File([data], "example.jpg", metadata);
-      handleFileSelected(file);
-    }
-    async function handleFileSelected(selectedFile: File) {
-      setStatus("LOADING");
-      setInputFile(selectedFile);
-      const detectedMode = selectedFile.name.match(/(hedgehog|posthog)/gi)
-        ? "HEDGEHOG"
-        : "NORMAL";
-      setMode(detectedMode);
-
-      posthog?.capture("user_selected_input_file", {
-        mode: detectedMode,
-        fileType: selectedFile.type,
-      });
-
-      const selectedFileAsDataUrl = await getDataUrl(selectedFile);
-      setInputImageDataUrl(selectedFileAsDataUrl);
-      setStatus("DETECTING");
-    }
-
-    return (
-      <FileInput
-        disabled={status === "LOADING"}
-        onExampleClick={handleExampleClick}
-        onFileSelected={handleFileSelected}
-      />
-    );
-  }
-
-  function goBackToStart() {
-    setStatus("START");
-    setInputImageDataUrl("");
-    setInputFile(undefined);
-    setImageOptions({ flipVertically: false, flipHorizontally: false });
-    removeAllGlasses();
-  }
-
   function renderInputImage() {
-    function handleRemoveInputImage() {
-      posthog?.capture("user_removed_input_image");
-
-      goBackToStart();
-    }
-
-    function handleInputImageError() {
-      messageApi.warning(
-        "The file could not be loaded - make sure it's a valid image file.",
-      );
-      posthog?.capture("user_uploaded_invalid_input_image");
-
-      goBackToStart();
-    }
-
     async function handleInputImageLoad() {
       if (!inputImageRef.current) {
         return;
@@ -231,33 +149,11 @@ function App() {
       setStatus("READY");
     }
 
-    function handleImageOptionsChange(
-      event: React.MouseEvent<HTMLElement, MouseEvent>,
-    ) {
-      const field = event.currentTarget.dataset.field as string;
-      posthog?.capture("user_flipped_image", {
-        flip: field,
-      });
-      function getNewValue() {
-        if (field === "flipVertically" || field === "flipHorizontally") {
-          return !imageOptions[field];
-        }
-      }
-      setImageOptions(
-        Object.assign({}, imageOptions, { [field as string]: getNewValue() }),
-      );
-    }
-
     return (
       <>
         <InputImage
-          imageOptions={imageOptions}
-          inputImageDataUrl={inputImageDataUrl}
           inputImageRef={inputImageRef}
-          onInputImageError={handleInputImageError}
           onInputImageLoad={handleInputImageLoad}
-          onImageOptionsChange={handleImageOptionsChange}
-          onRemoveInputImage={handleRemoveInputImage}
         />
         <SortableGlassesList />
       </>
@@ -412,7 +308,6 @@ function App() {
     <>
       <Title />
       <div className="relative py-3 sm:max-w-xl sm:mx-auto">
-        {contextHolder}
         <div className="relative p-10 bg-white dark:bg-slate-900 shadow-lg sm:rounded-3xl">
           <Button
             icon={<SettingOutlined />}
@@ -422,7 +317,7 @@ function App() {
           />
           <div className="sm:grid grid-cols-3 gap-4">
             <div className="col-span-2 mb-4 sm:mb-0">
-              {shouldRenderFileInput ? renderFileInput() : renderInputImage()}
+              {shouldRenderFileInput ? <FileInput /> : renderInputImage()}
             </div>
             {renderForm()}
           </div>

@@ -5,23 +5,40 @@ import type { UploadProps } from "antd";
 import groupImageUrl from "./assets/example-group.jpg";
 import personImageUrl from "./assets/example-person.jpg";
 import portraitImageUrl from "./assets/example-portrait.jpg";
+import { useBoundStore } from "./store/index.ts";
 
 const { Link, Paragraph } = Typography;
 const { Dragger } = Upload;
 
-interface FileInputProps {
-  onExampleClick: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
-  onFileSelected: (file: File) => void;
-  disabled: boolean;
-}
-
 const EXAMPLE_IMAGES = [personImageUrl, portraitImageUrl, groupImageUrl];
 
-export default function FileInput({
-  disabled,
-  onExampleClick,
-  onFileSelected,
-}: FileInputProps) {
+export default function FileInput() {
+  const posthog = useBoundStore((state) => state.posthog);
+  const status = useBoundStore((state) => state.status);
+  const setStatus = useBoundStore((state) => state.setStatus);
+  const setInputFile = useBoundStore((state) => state.setInputFile);
+
+  async function handleExampleClick(
+    event: React.MouseEvent<HTMLElement, MouseEvent>,
+  ) {
+    const imageUrl = event.currentTarget.dataset.url as string;
+    posthog.capture("user_selected_example_image", {
+      imageUrl,
+    });
+    const response = await fetch(imageUrl);
+    const data = await response.blob();
+    const metadata = {
+      type: "image/jpeg",
+    };
+    const file = new File([data], "example.jpg", metadata);
+    handleFileSelected(file);
+  }
+
+  function handleFileSelected(selectedFile: File) {
+    setStatus("LOADING");
+    setInputFile(selectedFile);
+  }
+
   const props: UploadProps = {
     className: "flex flex-1",
     name: "file",
@@ -29,13 +46,13 @@ export default function FileInput({
     accept: "image/png, image/jpeg",
     showUploadList: false,
     customRequest: (info) => {
-      onFileSelected(info.file as File);
+      handleFileSelected(info.file as File);
     },
   };
 
   function renderExample(imageUrl: string) {
     return (
-      <Link key={imageUrl} data-url={imageUrl} onClick={onExampleClick}>
+      <Link key={imageUrl} data-url={imageUrl} onClick={handleExampleClick}>
         <img src={imageUrl} />
       </Link>
     );
@@ -43,7 +60,7 @@ export default function FileInput({
 
   return (
     <>
-      <Dragger disabled={disabled} {...props}>
+      <Dragger disabled={status === "LOADING"} {...props}>
         <p className="ant-upload-drag-icon">
           <SmileOutlined />
         </p>

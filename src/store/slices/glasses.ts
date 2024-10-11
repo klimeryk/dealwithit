@@ -9,8 +9,7 @@ import { byId } from "../../lib/id-utils.ts";
 
 export interface GlassesSlice {
   glassesList: Glasses[];
-  flip: (id: nanoId, field: "flipHorizontally" | "flipVertically") => void;
-  removeAll: () => void;
+  flip: (id: nanoId, field: keyof WithFlip) => void;
   addDefault: () => void;
   putGlassesOnFaces: (image: HTMLImageElement) => void;
   updateCoordinates: (id: nanoId, delta: Coordinates) => void;
@@ -24,7 +23,6 @@ export interface GlassesSlice {
 
 export const createGlassesSlice: StateCreator<GlassesSlice> = (set) => ({
   glassesList: [],
-  removeAll: () => set(() => ({ glassesList: [] })),
   addDefault: () =>
     set(
       produce((draft) => {
@@ -133,7 +131,7 @@ export const createGlassesSlice: StateCreator<GlassesSlice> = (set) => ({
         }
       }),
     ),
-  flip: (id: nanoId, field: "flipHorizontally" | "flipVertically") =>
+  flip: (id, field) =>
     set(
       produce((draft) => {
         const index = draft.glassesList.findIndex(byId(id));

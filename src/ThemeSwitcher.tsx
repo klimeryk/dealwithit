@@ -1,4 +1,4 @@
-import { ConfigProvider, theme } from "antd";
+import { ConfigProvider, message, theme } from "antd";
 import { useEffect } from "react";
 
 import { useBoundStore } from "./store/index.ts";
@@ -8,6 +8,8 @@ type Props = {
 };
 
 export function ThemeSwitcher({ children }: Props) {
+  const [messageApi, contextHolder] = message.useMessage();
+  const setMessageApi = useBoundStore((state) => state.setMessageApi);
   const themeMode = useBoundStore((state) => state.themeMode);
   const isDarkMode = themeMode === "dark";
   useEffect(() => {
@@ -18,7 +20,8 @@ export function ThemeSwitcher({ children }: Props) {
       localStorage.setItem("theme", "light");
       document.documentElement.classList.remove("dark");
     }
-  }, [isDarkMode]);
+    setMessageApi(messageApi);
+  }, [isDarkMode, setMessageApi, messageApi]);
 
   return (
     <ConfigProvider
@@ -26,6 +29,7 @@ export function ThemeSwitcher({ children }: Props) {
         algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
       }}
     >
+      {contextHolder}
       {children}
     </ConfigProvider>
   );

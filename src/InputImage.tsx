@@ -11,33 +11,50 @@ import { getFlipTransform } from "./lib/utils.ts";
 import { useBoundStore } from "./store/index.ts";
 
 interface InputImageProps {
-  onInputImageError: () => void;
   onInputImageLoad: () => void;
-  onImageOptionsChange: (
-    event: React.MouseEvent<HTMLElement, MouseEvent>,
-  ) => void;
-  onRemoveInputImage: () => void;
 
-  imageOptions: ImageOptions;
-  inputImageDataUrl: string;
   inputImageRef: React.RefObject<HTMLImageElement>;
 }
 
-function InputImage({
-  onInputImageError,
-  onInputImageLoad,
-  onImageOptionsChange,
-  onRemoveInputImage,
-  imageOptions,
-  inputImageDataUrl,
-  inputImageRef,
-}: InputImageProps) {
+function InputImage({ onInputImageLoad, inputImageRef }: InputImageProps) {
+  const messageApi = useBoundStore((state) => state.messageApi);
+  const posthog = useBoundStore((state) => state.posthog);
+  const goBackToStart = useBoundStore((state) => state.goBackToStart);
+  const imageOptions = useBoundStore((state) => state.imageOptions);
+  const toggleImageOption = useBoundStore((state) => state.toggleImageOption);
+  const inputImageDataUrl = useBoundStore((state) => state.inputImageDataUrl);
+  const glassesList = useBoundStore((state) => state.glassesList);
+  const updateCoordinates = useBoundStore((state) => state.updateCoordinates);
+
   const imageStyle = {
     transform: getFlipTransform(imageOptions),
   };
 
-  const glassesList = useBoundStore((state) => state.glassesList);
-  const updateCoordinates = useBoundStore((state) => state.updateCoordinates);
+  function handleImageOptionsChange(
+    event: React.MouseEvent<HTMLElement, MouseEvent>,
+  ) {
+    const field = event.currentTarget.dataset.field as string;
+    if (field !== "flipVertically" && field !== "flipHorizontally") {
+      return;
+    }
+
+    toggleImageOption(field);
+  }
+
+  function handleRemoveInputImage() {
+    posthog.capture("user_removed_input_image");
+
+    goBackToStart();
+  }
+
+  function handleInputImageError() {
+    messageApi?.warning(
+      "The file could not be loaded - make sure it's a valid image file.",
+    );
+    posthog.capture("user_uploaded_invalid_input_image");
+
+    goBackToStart();
+  }
 
   function handleDragEnd({ delta, active }: DragEndEvent) {
     updateCoordinates(active.id as nanoId, delta);
@@ -64,7 +81,7 @@ function InputImage({
             style={imageStyle}
             ref={inputImageRef}
             src={inputImageDataUrl}
-            onError={onInputImageError}
+            onError={handleInputImageError}
             onLoad={onInputImageLoad}
           />
           {glassesList.map(renderGlasses)}
@@ -76,14 +93,14 @@ function InputImage({
               size="small"
               icon={<FlipH />}
               data-field="flipHorizontally"
-              onClick={onImageOptionsChange}
+              onClick={handleImageOptionsChange}
             />
             <Button
               title="Flip image vertically"
               size="small"
               icon={<FlipV />}
               data-field="flipVertically"
-              onClick={onImageOptionsChange}
+              onClick={handleImageOptionsChange}
             />
           </div>
           <Button
@@ -91,7 +108,7 @@ function InputImage({
             danger
             size="small"
             icon={<DeleteOutlined />}
-            onClick={onRemoveInputImage}
+            onClick={handleRemoveInputImage}
           >
             Remove image
           </Button>
