@@ -30,8 +30,10 @@ export const createGlassesSlice: StateCreator<GlassesSlice> = (set) => ({
         draft.posthog.capture("user_added_glasses");
       }),
     ),
-  putGlassesOnFaces: (image: HTMLImageElement) =>
-    set(() => ({ glassesList: detectFaces(image) })),
+  putGlassesOnFaces: async (image: HTMLImageElement) => {
+    const newGlasses = await detectFaces(image);
+    set(() => ({ glassesList: newGlasses }));
+  },
   updateCoordinates: (id: nanoId, delta: Coordinates) =>
     set(
       produce((draft) => {

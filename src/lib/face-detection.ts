@@ -1,4 +1,13 @@
-import { FaceDetector, FilesetResolver } from "@mediapipe/tasks-vision";
+import "@tensorflow/tfjs-backend-webgl";
+import { VERSION } from "@mediapipe/face_mesh";
+import { setWasmPaths, version_wasm } from "@tensorflow/tfjs-backend-wasm";
+import {
+  createDetector,
+  SupportedModels,
+} from "@tensorflow-models/face-landmarks-detection";
+import type { FaceLandmarksDetector } from "@tensorflow-models/face-landmarks-detection";
+
+import "@tensorflow-models/face-detection";
 
 import {
   getDefaultGlasses,
@@ -8,23 +17,24 @@ import {
   getRandomGlassesStyle,
 } from "./glasses.ts";
 
-let faceDetector: FaceDetector;
-const initializefaceDetector = async () => {
-  const vision = await FilesetResolver.forVisionTasks(
-    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm",
-  );
-  faceDetector = await FaceDetector.createFromOptions(vision, {
-    baseOptions: {
-      modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite`,
-      delegate: "GPU",
-    },
-    runningMode: "IMAGE",
-  });
-};
-initializefaceDetector();
+setWasmPaths(
+  `https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm@${version_wasm}/dist/`,
+);
 
-export function detectFaces(image: HTMLImageElement) {
-  const faces = faceDetector.detect(image).detections;
+let detector: FaceLandmarksDetector;
+async function initializeFaceDetection() {
+  detector = await createDetector(SupportedModels.MediaPipeFaceMesh, {
+    runtime: "mediapipe",
+    refineLandmarks: true,
+    maxFaces: 6,
+    solutionPath: `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@${VERSION}`,
+  });
+}
+initializeFaceDetection();
+
+export async function detectFaces(image: HTMLImageElement) {
+  const faces = await detector.estimateFaces(image);
+  console.log(faces);
   if (faces.length === 0) {
     return [getDefaultGlasses()];
   }
@@ -34,11 +44,6 @@ export function detectFaces(image: HTMLImageElement) {
 
   const newGlassesList: Glasses[] = [];
   for (const face of faces) {
-    for (const keypoint of face.keypoints) {
-      keypoint.x *= image.naturalWidth;
-      keypoint.y *= image.naturalHeight;
-    }
-
     const newGlasses =
       faces.length === 1
         ? getDefaultGlasses()
@@ -46,22 +51,20 @@ export function detectFaces(image: HTMLImageElement) {
     const originalGlassesSize = getGlassesSize(newGlasses.styleUrl);
     const originalEyesDistance = getEyesDistance(newGlasses);
     const eyesDistance = Math.sqrt(
-      Math.pow(scaleY * (face.keypoints[0].y - face.keypoints[1].y), 2) +
-        Math.pow(scaleX * (face.keypoints[0].x - face.keypoints[1].x), 2),
+      Math.pow(scaleY * (face.keypoints[145].y - face.keypoints[374].y), 2) +
+        Math.pow(scaleX * (face.keypoints[145].x - face.keypoints[374].x), 2),
     );
     const glassesScale = eyesDistance / originalEyesDistance;
     newGlasses.size.width = originalGlassesSize.width * glassesScale;
     newGlasses.size.height = originalGlassesSize.height * glassesScale;
-    const noseX = face.keypoints[2].x;
-    const noseY = Math.abs(face.keypoints[0].y - face.keypoints[1].y) / 2;
+    const noseX = face.keypoints[6].x;
+    const noseY = face.keypoints[6].y;
     const noseOffset = getNoseOffset(newGlasses);
     const glassesScaleX = newGlasses.size.width / originalGlassesSize.width;
     const glassesScaleY = newGlasses.size.height / originalGlassesSize.height;
     newGlasses.coordinates = {
       x: Math.abs(noseX * scaleX - noseOffset.x * glassesScaleX),
-      y: Math.abs(
-        (face.keypoints[0].y + noseY) * scaleY - noseOffset.y * glassesScaleY,
-      ),
+      y: Math.abs(noseY * scaleY - noseOffset.y * glassesScaleY),
     };
 
     newGlassesList.push(newGlasses);
