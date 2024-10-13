@@ -47,6 +47,7 @@ function SortableGlassesList() {
         <Button
           size="small"
           icon={<PlusCircleOutlined />}
+          disabled={status !== "READY"}
           onClick={addDefaultGlasses}
         >
           Add

@@ -19,6 +19,7 @@ function SortableGlassesItem({ glasses }: SortableGlassesItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: glasses.id });
 
+  const status = useBoundStore((state) => state.status);
   const flipGlasses = useBoundStore((state) => state.flip);
   const removeGlasses = useBoundStore((state) => state.remove);
   const selectGlasses = useBoundStore((state) => state.select);
@@ -99,6 +100,8 @@ function SortableGlassesItem({ glasses }: SortableGlassesItemProps) {
     },
   ];
 
+  const isLoading = status !== "READY";
+
   return (
     <li
       ref={setNodeRef}
@@ -112,6 +115,7 @@ function SortableGlassesItem({ glasses }: SortableGlassesItemProps) {
             type="link"
             size="small"
             icon={<HolderOutlined />}
+            disabled={isLoading}
             {...attributes}
             {...listeners}
           />
@@ -121,6 +125,7 @@ function SortableGlassesItem({ glasses }: SortableGlassesItemProps) {
               className="w-24"
               data-id={glasses.id}
               size="small"
+              disabled={isLoading}
               defaultValue={glasses.styleUrl}
               onChange={handleStyleChange}
               options={styleOptions}
@@ -130,6 +135,7 @@ function SortableGlassesItem({ glasses }: SortableGlassesItemProps) {
               title="Direction from which the glasses should arrive in frame"
               data-id={glasses.id}
               size="small"
+              disabled={isLoading}
               defaultValue="up"
               onChange={handleDirectionChange}
               options={directionOptions}
@@ -141,6 +147,7 @@ function SortableGlassesItem({ glasses }: SortableGlassesItemProps) {
               icon={<FlipH />}
               data-id={glasses.id}
               data-field="flipHorizontally"
+              disabled={isLoading}
               onClick={handleFlipChange}
             />
             <Button
@@ -150,6 +157,7 @@ function SortableGlassesItem({ glasses }: SortableGlassesItemProps) {
               icon={<FlipV />}
               data-id={glasses.id}
               data-field="flipVertically"
+              disabled={isLoading}
               onClick={handleFlipChange}
             />
           </div>
@@ -161,6 +169,7 @@ function SortableGlassesItem({ glasses }: SortableGlassesItemProps) {
             type={glasses.isSelected ? "primary" : "default"}
             icon={<EyeOutlined />}
             data-id={glasses.id}
+            disabled={isLoading}
             onClick={handleSelectionChange}
           />
           <Button
@@ -168,6 +177,7 @@ function SortableGlassesItem({ glasses }: SortableGlassesItemProps) {
             danger
             size="small"
             icon={<DeleteOutlined />}
+            disabled={isLoading}
             onClick={handleRemove}
           />
         </div>

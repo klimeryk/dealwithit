@@ -19,6 +19,7 @@ interface InputImageProps {
 function InputImage({ onInputImageLoad, inputImageRef }: InputImageProps) {
   const messageApi = useBoundStore((state) => state.messageApi);
   const posthog = useBoundStore((state) => state.posthog);
+  const status = useBoundStore((state) => state.status);
   const goBackToStart = useBoundStore((state) => state.goBackToStart);
   const imageOptions = useBoundStore((state) => state.imageOptions);
   const toggleImageOption = useBoundStore((state) => state.toggleImageOption);
@@ -70,6 +71,8 @@ function InputImage({ onInputImageLoad, inputImageRef }: InputImageProps) {
     );
   }
 
+  const isLoading = status !== "READY";
+
   return (
     <DndContext
       onDragEnd={handleDragEnd}
@@ -93,6 +96,7 @@ function InputImage({ onInputImageLoad, inputImageRef }: InputImageProps) {
               size="small"
               icon={<FlipH />}
               data-field="flipHorizontally"
+              disabled={isLoading}
               onClick={handleImageOptionsChange}
             />
             <Button
@@ -100,6 +104,7 @@ function InputImage({ onInputImageLoad, inputImageRef }: InputImageProps) {
               size="small"
               icon={<FlipV />}
               data-field="flipVertically"
+              disabled={isLoading}
               onClick={handleImageOptionsChange}
             />
           </div>
@@ -108,6 +113,7 @@ function InputImage({ onInputImageLoad, inputImageRef }: InputImageProps) {
             danger
             size="small"
             icon={<DeleteOutlined />}
+            disabled={isLoading}
             onClick={handleRemoveInputImage}
           >
             Remove image

@@ -170,7 +170,7 @@ export default function ConfigurationForm({
               style={{ width: "100%" }}
               min={10}
               step={100}
-              disabled={!lastFrameDelayEnabled || status === "START"}
+              disabled={!lastFrameDelayEnabled || status !== "READY"}
             />
           </Form.Item>
         </Space>
