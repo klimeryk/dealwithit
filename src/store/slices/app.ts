@@ -25,6 +25,7 @@ function initializePosthog() {
     opt_out_capturing_by_default: true,
     disable_surveys: true,
     disable_session_recording: true,
+    persistence: "localStorage",
   };
   posthog.init("phc_7SZQ8Cl3ymxNbRF8K5OLMO3VOQ51MD8Gnh6UDLU17lG", options);
   if (import.meta.env.DEV) {
