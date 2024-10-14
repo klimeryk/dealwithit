@@ -4,12 +4,26 @@
 
 @media (prefers-color-scheme: dark) {
   html {
-     content: "dark"; 
+    content: "dark";
   }
 }
 
 @media (prefers-color-scheme: light) {
   html {
-     content: "light";
-  }  
+    content: "light";
+  }
+}
+
+@keyframes slideInFromTop {
+  0% {
+    transform: translateY(-300%);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
+}
+
+img.slide-glasses {
+  animation: 1.5s linear 0s 1 slideInFromTop;
 }

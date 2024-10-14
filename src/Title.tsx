@@ -10,7 +10,7 @@ export default function Title() {
         <h1 className="relative top-0 w-fit h-auto py-2 justify-center flex bg-gradient-to-r items-center from-blue-500 via-teal-500 to-pink-500 bg-clip-text text-6xl font-extrabold text-transparent text-center select-auto">
           Deal With It
           <img
-            className="absolute"
+            className="absolute slide-glasses"
             style={{ width: "100px", top: "31px", left: "102px" }}
             src={glassesImageUrl}
           />
