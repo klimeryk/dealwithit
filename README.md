@@ -9,6 +9,7 @@ Fully client-side Deal With It emoji generator hosted at https://emoji.build/dea
 - Extensive customization options for glasses:
   - Placement of glasses anywhere on the input image (including slightly going outside it).
   - Change the size of glasses.
+  - Change the color of glasses to any RGBA value (only applies to the Classic style).
   - No limit on the number of glasses.
   - Flip the glasses vertically or horizontally.
   - Customize the direction from which the glasses appear on the image.

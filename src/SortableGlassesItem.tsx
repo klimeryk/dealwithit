@@ -6,7 +6,8 @@ import { Button, Select } from "antd";
 import glassesSmallImageUrl from "./assets/glasses-small.png";
 import glassesSymmetricalPartyImageUrl from "./assets/glasses-symmetrical-party.png";
 import glassesSymmetricalImageUrl from "./assets/glasses-symmetrical.png";
-import glassesImageUrl from "./assets/glasses.png";
+import glassesImageUrl from "./assets/glasses.svg";
+import GlassesColorPicker from "./GlassesColorPicker.tsx";
 import FlipH from "./icons/FlipH.tsx";
 import FlipV from "./icons/FlipV.tsx";
 import { useBoundStore } from "./store/index.ts";
@@ -37,7 +38,7 @@ function SortableGlassesItem({ glasses }: SortableGlassesItemProps) {
     updateGlassesDirection(glasses.id, value);
   }
 
-  function handleStyleChange(value: string) {
+  async function handleStyleChange(value: string) {
     updateGlassesStyle(glasses.id, value);
   }
 
@@ -64,7 +65,12 @@ function SortableGlassesItem({ glasses }: SortableGlassesItemProps) {
 
   const styleOptions = [
     {
-      label: "Classic",
+      label: (
+        <div className="flex justify-between" title="Supports custom colors">
+          <span>Classic</span>
+          <span>🎨</span>
+        </div>
+      ),
       value: glassesImageUrl,
     },
     {
@@ -160,6 +166,9 @@ function SortableGlassesItem({ glasses }: SortableGlassesItemProps) {
               disabled={isLoading}
               onClick={handleFlipChange}
             />
+            {glasses.style === glassesImageUrl && (
+              <GlassesColorPicker glasses={glasses} />
+            )}
           </div>
         </div>
         <div className="flex gap-2 flex-wrap justify-end">
