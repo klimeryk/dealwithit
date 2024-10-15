@@ -10,6 +10,7 @@ import {
 } from "antd";
 import { useMemo, useState } from "react";
 
+import { DEFAULT_GLASSES_SIZE } from "./lib/glasses.ts";
 import { useBoundStore } from "./store/index.ts";
 
 const EMOJI_GENERATION_START_MARK = "EmojiGenerationStartMark";
@@ -113,7 +114,7 @@ export default function ConfigurationForm({
           frameDelay: 100,
           lastFrameDelay: { enabled: true, value: 1000 },
           looping: { mode: "infinite", loops: 5 },
-          size: 160,
+          size: DEFAULT_GLASSES_SIZE,
         } as ConfigurationOptions
       }
     >

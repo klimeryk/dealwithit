@@ -6,8 +6,9 @@ import glassesSymmetricalPartyImageUrl from "../assets/glasses-symmetrical-party
 import glassesSymmetricalImageUrl from "../assets/glasses-symmetrical.png";
 import glassesImageUrl from "../assets/glasses.png";
 
+export const DEFAULT_GLASSES_SIZE = 128;
+
 export function getDefaultGlasses(styleUrl = glassesImageUrl): Glasses {
-  const DEFAULT_WIDTH = 150;
   return {
     id: nanoid(),
     direction: "up",
@@ -20,8 +21,8 @@ export function getDefaultGlasses(styleUrl = glassesImageUrl): Glasses {
     isSelected: false,
     styleUrl: styleUrl,
     size: {
-      width: DEFAULT_WIDTH,
-      height: DEFAULT_WIDTH / getAspectRatio(styleUrl),
+      width: DEFAULT_GLASSES_SIZE,
+      height: DEFAULT_GLASSES_SIZE / getAspectRatio(styleUrl),
     },
   };
 }
