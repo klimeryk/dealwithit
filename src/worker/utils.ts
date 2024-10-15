@@ -94,7 +94,7 @@ export function renderGlassesFrame(
     jimpFrame.blit(glassesImages[glasses.id], movement.x, movement.y);
   }
   const jimpBitmap = new BitmapImage(jimpFrame.bitmap);
-  GifUtil.quantizeDekker(jimpBitmap, 256);
+  GifUtil.quantizeDekker(jimpBitmap, 64);
   return new GifFrame(jimpBitmap, {
     delayCentisecs:
       frameNumber !== numberOfFrames

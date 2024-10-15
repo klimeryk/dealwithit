@@ -110,8 +110,8 @@ export default function ConfigurationForm({
       disabled={status !== "READY"}
       initialValues={
         {
-          numberOfFrames: 15,
-          frameDelay: 100,
+          numberOfFrames: 10,
+          frameDelay: 120,
           lastFrameDelay: { enabled: true, value: 1000 },
           looping: { mode: "infinite", loops: 5 },
           size: DEFAULT_GLASSES_SIZE,
