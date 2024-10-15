@@ -1,5 +1,6 @@
 type AppStatus =
   | "START"
+  | "INPUT"
   | "LOADING"
   | "DETECTING"
   | "READY"

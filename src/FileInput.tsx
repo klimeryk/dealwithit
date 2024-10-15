@@ -1,5 +1,5 @@
 import { SmileOutlined } from "@ant-design/icons";
-import { Typography, Upload } from "antd";
+import { Spin, Typography, Upload } from "antd";
 import type { UploadProps } from "antd";
 
 import groupImageUrl from "./assets/example-group.jpg";
@@ -58,7 +58,7 @@ export default function FileInput() {
     );
   }
 
-  return (
+  const fileInput = (
     <>
       <Dragger disabled={status === "LOADING"} {...props}>
         <p className="ant-upload-drag-icon">
@@ -74,4 +74,12 @@ export default function FileInput() {
       </div>
     </>
   );
+
+  if (status === "START") {
+    return (
+      <Spin tip="Loading AI models for face detection...">{fileInput}</Spin>
+    );
+  }
+
+  return fileInput;
 }

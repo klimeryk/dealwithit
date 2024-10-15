@@ -46,7 +46,7 @@ export const createAppSlice: StateCreator<AppSlice> = (set) => ({
   posthog: initializePosthog(),
   goBackToStart: () =>
     set(() => ({
-      status: "START",
+      status: "INPUT",
       inputFile: undefined,
       inputImageDataUrl: "",
       glassesList: [],

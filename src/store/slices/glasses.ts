@@ -3,7 +3,6 @@ import { arrayMove } from "@dnd-kit/sortable";
 import { produce } from "immer";
 import { StateCreator } from "zustand";
 
-import { detectFaces } from "../../lib/face-detection.ts";
 import { getDefaultGlasses } from "../../lib/glasses.ts";
 import { byId } from "../../lib/id-utils.ts";
 
@@ -11,7 +10,6 @@ export interface GlassesSlice {
   glassesList: Glasses[];
   flip: (id: nanoId, field: keyof WithFlip) => void;
   addDefault: () => void;
-  putGlassesOnFaces: (image: HTMLImageElement) => void;
   updateCoordinates: (id: nanoId, delta: Coordinates) => void;
   updateDirection: (id: nanoId, direction: GlassesDirection) => void;
   updateStyle: (id: nanoId, styleUrl: string) => void;
@@ -30,8 +28,6 @@ export const createGlassesSlice: StateCreator<GlassesSlice> = (set) => ({
         draft.posthog.capture("user_added_glasses");
       }),
     ),
-  putGlassesOnFaces: (image: HTMLImageElement) =>
-    set(() => ({ glassesList: detectFaces(image) })),
   updateCoordinates: (id: nanoId, delta: Coordinates) =>
     set(
       produce((draft) => {

@@ -17,8 +17,7 @@ function App() {
   const messageApi = useBoundStore((state) => state.messageApi);
   const setDrawerOpen = useBoundStore((state) => state.setDrawerOpen);
   const status = useBoundStore((state) => state.status);
-  const setStatus = useBoundStore((state) => state.setStatus);
-  const putGlassesOnFaces = useBoundStore((state) => state.putGlassesOnFaces);
+  const detectFaces = useBoundStore((state) => state.detectFaces);
   const inputImageRef = useRef<null | HTMLImageElement>(null);
   const mode = useBoundStore((state) => state.mode);
 
@@ -36,8 +35,7 @@ function App() {
       if (!inputImageRef.current) {
         return;
       }
-      putGlassesOnFaces(inputImageRef.current);
-      setStatus("READY");
+      detectFaces(inputImageRef.current);
     }
 
     return (
@@ -55,7 +53,7 @@ function App() {
     setDrawerOpen(true);
   }
 
-  const shouldRenderFileInput = ["START", "LOADING"].includes(status);
+  const shouldRenderFileInput = ["START", "INPUT", "LOADING"].includes(status);
 
   return (
     <>
