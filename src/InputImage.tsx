@@ -79,13 +79,14 @@ function InputImage({ onInputImageLoad, inputImageRef }: InputImageProps) {
       modifiers={[restrictToParentWithOffset]}
     >
       <div className="flex flex-col gap-2 items-center">
-        <div className="relative">
+        <div className="relative select-none">
           <img
             style={imageStyle}
             ref={inputImageRef}
             src={inputImageDataUrl}
             onError={handleInputImageError}
             onLoad={onInputImageLoad}
+            draggable={false}
           />
           {glassesList.map(renderGlasses)}
         </div>
