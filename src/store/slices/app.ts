@@ -1,5 +1,5 @@
 import { MessageInstance } from "antd/es/message/interface";
-import { posthog } from "posthog-js";
+import { posthog, PostHogConfig } from "posthog-js";
 import type { PostHog } from "posthog-js/react";
 import { StateCreator } from "zustand";
 
@@ -18,7 +18,7 @@ export interface AppSlice {
 }
 
 function initializePosthog() {
-  const options = {
+  const options: Partial<PostHogConfig> = {
     api_host: "https://jez.emoji.build",
     ui_host: "https://eu.i.posthog.com",
     autocapture: false,
