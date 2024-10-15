@@ -124,7 +124,7 @@ export async function getGlassesImages(
 ) {
   const outputList = {} as Record<nanoId, Jimp>;
   for (const glasses of glassesList) {
-    const cacheKey = `${glasses.styleUrl} ${glasses.size.width} ${glasses.size.height}`;
+    const cacheKey = `${glasses.styleUrl} ${glasses.size.width} ${glasses.size.height} ${scaleX} ${scaleY}`;
     if (!glassesImagesCache[cacheKey]) {
       const glassesImage = await Jimp.read(glasses.styleUrl);
       glassesImagesCache[cacheKey] = glassesImage.resize(
