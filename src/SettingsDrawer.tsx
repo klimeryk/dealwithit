@@ -53,7 +53,10 @@ function SettingsDrawer() {
           </li>
           <li>
             Uses{" "}
-            <Link href="https://ai.google.dev/edge/mediapipe/solutions/vision/face_detector">
+            <Link
+              href="https://ai.google.dev/edge/mediapipe/solutions/vision/face_detector"
+              target="_blank"
+            >
               MediaPipe Face Detector task
             </Link>{" "}
             to automatically scale and position glasses on the detected faces.
@@ -84,6 +87,13 @@ function SettingsDrawer() {
               <li>Separate delay setting for last frame.</li>
               <li>Output size.</li>
             </ul>
+          </li>
+          <li>
+            Anonymous product analytics using{" "}
+            <Link href="https://posthog.com/" target="_blank">
+              PostHog
+            </Link>
+            , requiring explicit <em>opt-in</em>.
           </li>
           <li>Celebration confetti 🎉</li>
           <li>Easter eggs.</li>
