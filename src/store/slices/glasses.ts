@@ -3,7 +3,7 @@ import { arrayMove } from "@dnd-kit/sortable";
 import { produce } from "immer";
 import { StateCreator } from "zustand";
 
-import { computeStyleUrl, getDefaultGlasses } from "../../lib/glasses.ts";
+import { getDefaultGlasses } from "../../lib/glasses.ts";
 import { byId } from "../../lib/id-utils.ts";
 
 export interface GlassesSlice {
@@ -13,14 +13,13 @@ export interface GlassesSlice {
   updateCoordinates: (id: nanoId, delta: Coordinates) => void;
   updateDirection: (id: nanoId, direction: GlassesDirection) => void;
   updateStyle: (id: nanoId, styleUrl: string) => void;
-  updateStyleColor: (id: nanoId, color: string) => void;
   updateSize: (id: nanoId, size: Size) => void;
   reorder: (oldId: nanoId, newId: nanoId) => void;
   remove: (id: nanoId) => void;
   select: (id: nanoId) => void;
 }
 
-export const createGlassesSlice: StateCreator<GlassesSlice> = (set, get) => ({
+export const createGlassesSlice: StateCreator<GlassesSlice> = (set) => ({
   glassesList: [],
   addDefault: () =>
     set(
@@ -57,43 +56,19 @@ export const createGlassesSlice: StateCreator<GlassesSlice> = (set, get) => ({
         });
       }),
     ),
-  updateStyle: async (id: nanoId, style: string) => {
-    const index = get().glassesList.findIndex(byId(id));
-    if (index === -1) {
-      return;
-    }
-    const newStyleUrl = await computeStyleUrl(
-      style,
-      get().glassesList[index].styleColor,
-    );
-    return set(
+  updateStyle: (id: nanoId, styleUrl: string) =>
+    set(
       produce((draft) => {
-        draft.glassesList[index].style = style;
-        draft.glassesList[index].styleUrl = newStyleUrl;
+        const index = draft.glassesList.findIndex(byId(id));
+        if (index === -1) {
+          return;
+        }
+        draft.glassesList[index].styleUrl = styleUrl;
         draft.posthog.capture("user_changed_glasses_style", {
-          style,
+          styleUrl,
         });
       }),
-    );
-  },
-  updateStyleColor: async (id: nanoId, color: string) => {
-    const index = get().glassesList.findIndex(byId(id));
-    if (index === -1) {
-      return;
-    }
-
-    const newStyleUrl = await computeStyleUrl(
-      get().glassesList[index].style,
-      color,
-    );
-    return set(
-      produce((draft) => {
-        draft.glassesList[index].styleColor = color;
-        draft.glassesList[index].styleUrl = newStyleUrl;
-        draft.posthog.capture("user_changed_glasses_color");
-      }),
-    );
-  },
+    ),
   updateSize: (id: nanoId, size: Size) =>
     set(
       produce((draft) => {

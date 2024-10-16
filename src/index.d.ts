@@ -29,8 +29,6 @@ type Glasses = WithFlip &
     coordinates: Coordinates;
     direction: GlassesDirection;
     isSelected: boolean;
-    style: string;
-    styleColor: string;
     styleUrl: string;
     size: Size;
   };

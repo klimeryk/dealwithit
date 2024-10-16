@@ -69,10 +69,6 @@ function SettingsDrawer() {
                 slightly going outside it).
               </li>
               <li>Change the size of glasses.</li>
-              <li>
-                Change the color of glasses to any RGBA color (only applies to
-                Classic style).
-              </li>
               <li>No limit on the number of glasses.</li>
               <li>Flip the glasses vertically or horizontally.</li>
               <li>
