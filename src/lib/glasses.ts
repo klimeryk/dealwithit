@@ -5,6 +5,7 @@ import glassesSmallImageUrl from "../assets/glasses-small.png";
 import glassesSymmetricalPartyImageUrl from "../assets/glasses-symmetrical-party.png";
 import glassesSymmetricalImageUrl from "../assets/glasses-symmetrical.png";
 import glassesImageUrl from "../assets/glasses.png";
+import glassesImageSvg from "../assets/glasses.svg?raw"; // eslint-disable-line import/no-unresolved
 
 export const DEFAULT_GLASSES_SIZE = 128;
 
@@ -19,6 +20,8 @@ export function getDefaultGlasses(styleUrl = glassesImageUrl): Glasses {
     flipHorizontally: false,
     flipVertically: false,
     isSelected: false,
+    style: styleUrl,
+    styleColor: "#000000",
     styleUrl: styleUrl,
     size: {
       width: DEFAULT_GLASSES_SIZE,
@@ -27,8 +30,8 @@ export function getDefaultGlasses(styleUrl = glassesImageUrl): Glasses {
   };
 }
 
-export function getGlassesSize(imageUrl: string): Size {
-  switch (imageUrl) {
+export function getGlassesSize(style: string): Size {
+  switch (style) {
     case glassesSmallImageUrl:
       return { width: 240, height: 60 };
 
@@ -38,17 +41,17 @@ export function getGlassesSize(imageUrl: string): Size {
 
     case glassesImageUrl:
     default:
-      return { width: 927, height: 145 };
+      return { width: 1024, height: 165 };
   }
 }
 
-export function getAspectRatio(imageUrl: string) {
-  const { width, height } = getGlassesSize(imageUrl);
+export function getAspectRatio(style: string) {
+  const { width, height } = getGlassesSize(style);
   return width / height;
 }
 
-export function getNoseOffset({ styleUrl }: Glasses): Coordinates {
-  switch (styleUrl) {
+export function getNoseOffset({ style }: Glasses): Coordinates {
+  switch (style) {
     case glassesSmallImageUrl:
       return { x: 119, y: 19 };
 
@@ -58,12 +61,12 @@ export function getNoseOffset({ styleUrl }: Glasses): Coordinates {
 
     case glassesImageUrl:
     default:
-      return { x: 609, y: 58 };
+      return { x: 660, y: 64 };
   }
 }
 
-export function getEyesDistance({ styleUrl }: Glasses) {
-  switch (styleUrl) {
+export function getEyesDistance({ style }: Glasses) {
+  switch (style) {
     case glassesSmallImageUrl:
       return 140;
 
@@ -73,7 +76,7 @@ export function getEyesDistance({ styleUrl }: Glasses) {
 
     case glassesImageUrl:
     default:
-      return 354;
+      return 385;
   }
 }
 
@@ -85,4 +88,41 @@ export function getRandomGlassesStyle(): string {
     glassesSymmetricalPartyImageUrl,
   ];
   return glassesStyles[Math.floor(Math.random() * glassesStyles.length)];
+}
+
+export async function computeStyleUrl(
+  style: string,
+  styleColor: string,
+): Promise<string> {
+  if (style !== glassesImageUrl) {
+    return style;
+  }
+
+  const dataHeader = "data:image/svg+xml;charset=utf-8";
+  const encodeAsUTF8 = (s: string) => `${dataHeader},${encodeURIComponent(s)}`;
+
+  const loadImage = async (url: string): Promise<HTMLImageElement> => {
+    const $img = document.createElement("img");
+    $img.src = url;
+    return new Promise((resolve, reject) => {
+      $img.onload = () => resolve($img);
+      $img.onerror = reject;
+    });
+  };
+
+  const coloredGlasses = glassesImageSvg.replace("#000000", styleColor);
+  const svgData = encodeAsUTF8(coloredGlasses);
+  const img = await loadImage(svgData);
+  const canvas = document.createElement("canvas");
+  const glassesSize = getGlassesSize(style);
+  canvas.width = glassesSize.width;
+  canvas.height = glassesSize.height;
+  const context = canvas.getContext("2d");
+  if (!context) {
+    return glassesImageUrl;
+  }
+
+  context.drawImage(img, 0, 0, glassesSize.width, glassesSize.height);
+
+  return canvas.toDataURL(`image/png`, 1.0);
 }

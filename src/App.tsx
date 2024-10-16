@@ -58,7 +58,7 @@ function App() {
   return (
     <>
       <Title />
-      <div className="relative py-3 sm:max-w-xl sm:mx-auto">
+      <div className="relative py-3 sm:max-w-2xl sm:mx-auto">
         <div className="relative p-10 bg-white dark:bg-slate-900 shadow-lg sm:rounded-3xl">
           <Button
             icon={<SettingOutlined />}
