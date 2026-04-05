@@ -20,7 +20,6 @@ Fully client-side Deal With It emoji generator hosted at https://emoji.build/dea
   - Frame delay.
   - Separate delay setting for last frame.
   - Output size.
-- Anonymous product analytics using [PostHog](https://posthog.com/), requiring explicit *opt-in*.
 - Celebration confetti 🎉
 - Easter eggs.
 

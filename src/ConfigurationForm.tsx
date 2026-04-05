@@ -13,9 +13,6 @@ import { useMemo, useState } from "react";
 import { DEFAULT_GLASSES_SIZE } from "./lib/glasses.ts";
 import { useBoundStore } from "./store/index.ts";
 
-const EMOJI_GENERATION_START_MARK = "EmojiGenerationStartMark";
-const EMOJI_GENERATION_END_MARK = "EmojiGenerationEndMark";
-
 interface ConfigurationFormProps {
   inputImageRef: React.RefObject<HTMLImageElement>;
 }
@@ -35,7 +32,6 @@ export default function ConfigurationForm({
   const setOutputImage = useBoundStore((state) => state.setOutputImage);
   const glassesList = useBoundStore((state) => state.glassesList);
   const imageOptions = useBoundStore((state) => state.imageOptions);
-  const posthog = useBoundStore((state) => state.posthog);
   const status = useBoundStore((state) => state.status);
   const setStatus = useBoundStore((state) => state.setStatus);
 
@@ -54,16 +50,6 @@ export default function ConfigurationForm({
       return;
     }
 
-    performance.mark(EMOJI_GENERATION_END_MARK);
-    const emojiMeasure = performance.measure(
-      "EmojiGeneration",
-      EMOJI_GENERATION_START_MARK,
-      EMOJI_GENERATION_END_MARK,
-    );
-    posthog?.capture("user_finished_emoji_generation", {
-      duration: emojiMeasure.duration,
-    });
-
     const { gifBlob, resultDataUrl } = data;
     setOutputImage(gifBlob, resultDataUrl);
     setStatus("DONE");
@@ -81,12 +67,6 @@ export default function ConfigurationForm({
       ["numberOfFrames"],
       ["size"],
     ]);
-
-    posthog?.capture("user_started_emoji_generation", {
-      ...configurationOptions,
-    });
-
-    performance.mark(EMOJI_GENERATION_START_MARK);
 
     gifWorker.postMessage({
       configurationOptions,

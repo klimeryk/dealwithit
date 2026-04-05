@@ -18,7 +18,6 @@ interface InputImageProps {
 
 function InputImage({ onInputImageLoad, inputImageRef }: InputImageProps) {
   const messageApi = useBoundStore((state) => state.messageApi);
-  const posthog = useBoundStore((state) => state.posthog);
   const status = useBoundStore((state) => state.status);
   const goBackToStart = useBoundStore((state) => state.goBackToStart);
   const imageOptions = useBoundStore((state) => state.imageOptions);
@@ -43,8 +42,6 @@ function InputImage({ onInputImageLoad, inputImageRef }: InputImageProps) {
   }
 
   function handleRemoveInputImage() {
-    posthog.capture("user_removed_input_image");
-
     goBackToStart();
   }
 
@@ -52,7 +49,6 @@ function InputImage({ onInputImageLoad, inputImageRef }: InputImageProps) {
     messageApi?.warning(
       "The file could not be loaded - make sure it's a valid image file.",
     );
-    posthog.capture("user_uploaded_invalid_input_image");
 
     goBackToStart();
   }

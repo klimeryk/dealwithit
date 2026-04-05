@@ -16,7 +16,6 @@ const EXAMPLE_IMAGES = [personImageUrl, portraitImageUrl, groupImageUrl];
 export default function FileInput() {
   const [imageUrl, setImageUrl] = useState("");
 
-  const posthog = useBoundStore((state) => state.posthog);
   const status = useBoundStore((state) => state.status);
   const setStatus = useBoundStore((state) => state.setStatus);
   const setInputFile = useBoundStore((state) => state.setInputFile);
@@ -28,7 +27,6 @@ export default function FileInput() {
   async function handleImageUrlSubmit() {
     setStatus("LOADING");
 
-    posthog.capture("user_submitted_image_url");
     const response = await fetch(imageUrl);
     const data = await response.blob();
     const contentType = response.headers.get("content-type") || "image/jpeg";
@@ -43,9 +41,6 @@ export default function FileInput() {
     event: React.MouseEvent<HTMLElement, MouseEvent>,
   ) {
     const imageUrl = event.currentTarget.dataset.url as string;
-    posthog.capture("user_selected_example_image", {
-      imageUrl,
-    });
     const response = await fetch(imageUrl);
     const data = await response.blob();
     const metadata = {

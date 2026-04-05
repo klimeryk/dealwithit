@@ -26,7 +26,6 @@ function GlassesDraggable({ glasses, inputImageRef }: GlassesDraggableProps) {
   });
 
   const updateGlassesSize = useBoundStore((state) => state.updateSize);
-  const posthog = useBoundStore((state) => state.posthog);
 
   const [startSize, setStartSize] = useState({ width: 0, height: 0 });
 
@@ -57,10 +56,6 @@ function GlassesDraggable({ glasses, inputImageRef }: GlassesDraggableProps) {
     }
 
     updateGlassesSize(glasses.id, { width: newWidth, height: newHeight });
-  }
-
-  function handleDragEnd() {
-    posthog.capture("user_resized_glasses");
   }
 
   const clipPath = {
@@ -123,11 +118,7 @@ function GlassesDraggable({ glasses, inputImageRef }: GlassesDraggableProps) {
         {...attributes}
         {...listeners}
       />
-      <DndContext
-        onDragStart={handleDragStart}
-        onDragMove={handleDragMove}
-        onDragEnd={handleDragEnd}
-      >
+      <DndContext onDragStart={handleDragStart} onDragMove={handleDragMove}>
         <ResizeHandle item={glasses} />
       </DndContext>
     </span>

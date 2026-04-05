@@ -26,7 +26,6 @@ export const createGlassesSlice: StateCreator<GlassesSlice> = (set, get) => ({
     set(
       produce((draft) => {
         draft.glassesList.push(getDefaultGlasses());
-        draft.posthog.capture("user_added_glasses");
       }),
     ),
   updateCoordinates: (id: nanoId, delta: Coordinates) =>
@@ -41,7 +40,6 @@ export const createGlassesSlice: StateCreator<GlassesSlice> = (set, get) => ({
           x: x + delta.x,
           y: y + delta.y,
         };
-        draft.posthog.capture("user_dragged_glasses");
       }),
     ),
   updateDirection: (id: nanoId, direction: GlassesDirection) =>
@@ -52,9 +50,6 @@ export const createGlassesSlice: StateCreator<GlassesSlice> = (set, get) => ({
           return;
         }
         draft.glassesList[index].direction = direction;
-        draft.posthog.capture("user_changed_glasses_direction", {
-          direction,
-        });
       }),
     ),
   updateStyle: async (id: nanoId, style: string) => {
@@ -70,9 +65,6 @@ export const createGlassesSlice: StateCreator<GlassesSlice> = (set, get) => ({
       produce((draft) => {
         draft.glassesList[index].style = style;
         draft.glassesList[index].styleUrl = newStyleUrl;
-        draft.posthog.capture("user_changed_glasses_style", {
-          style,
-        });
       }),
     );
   },
@@ -90,7 +82,6 @@ export const createGlassesSlice: StateCreator<GlassesSlice> = (set, get) => ({
       produce((draft) => {
         draft.glassesList[index].styleColor = color;
         draft.glassesList[index].styleUrl = newStyleUrl;
-        draft.posthog.capture("user_changed_glasses_color");
       }),
     );
   },
@@ -115,7 +106,6 @@ export const createGlassesSlice: StateCreator<GlassesSlice> = (set, get) => ({
           return;
         }
         draft.glassesList = arrayMove(draft.glassesList, oldIndex, newIndex);
-        draft.posthog.capture("user_reordered_glasses");
       }),
     ),
   remove: (id: nanoId) =>
@@ -126,7 +116,6 @@ export const createGlassesSlice: StateCreator<GlassesSlice> = (set, get) => ({
           return;
         }
         draft.glassesList.splice(index, 1);
-        draft.posthog.capture("user_removed_glasses");
       }),
     ),
   select: (id: nanoId) =>
@@ -136,6 +125,7 @@ export const createGlassesSlice: StateCreator<GlassesSlice> = (set, get) => ({
         if (index === -1) {
           return;
         }
+
         let previouslySelectedId;
         draft.glassesList = draft.glassesList.map((glasses: Glasses) => {
           if (glasses.isSelected) {
@@ -144,11 +134,9 @@ export const createGlassesSlice: StateCreator<GlassesSlice> = (set, get) => ({
           glasses.isSelected = false;
           return glasses;
         });
+
         if (previouslySelectedId !== id) {
           draft.glassesList[index].isSelected = true;
-          draft.posthog.capture("user_selected_glasses");
-        } else {
-          draft.posthog.capture("user_deselected_glasses");
         }
       }),
     ),
@@ -159,10 +147,8 @@ export const createGlassesSlice: StateCreator<GlassesSlice> = (set, get) => ({
         if (index === -1) {
           return;
         }
+
         draft.glassesList[index][field] = !draft.glassesList[index][field];
-        draft.posthog.capture("user_flipped_glasses", {
-          flip: field,
-        });
       }),
     ),
 });

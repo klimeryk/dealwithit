@@ -27,14 +27,9 @@ export const createImageSlice: StateCreator<
   outputImageDataUrl: "",
 
   setInputFile: async (file) => {
-    const detectedMode = file.name.match(/(hedgehog|posthog)/gi)
+    const detectedMode = file.name.match(/(hedgehog)/gi)
       ? "HEDGEHOG"
       : "NORMAL";
-
-    get().posthog.capture("user_selected_input_file", {
-      mode: detectedMode,
-      fileType: file.type,
-    });
 
     const fileAsDataUrl = await getDataUrl(file);
     set(() => ({

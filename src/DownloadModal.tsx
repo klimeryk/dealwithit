@@ -8,7 +8,6 @@ import { generateOutputFilename, getSuccessMessage } from "./lib/utils.ts";
 import { useBoundStore } from "./store/index.ts";
 
 function DownloadModal() {
-  const posthog = useBoundStore((state) => state.posthog);
   const mode = useBoundStore((state) => state.mode);
   const successCount = useBoundStore((state) => state.successCount);
   const status = useBoundStore((state) => state.status);
@@ -20,12 +19,10 @@ function DownloadModal() {
   const outputImageRef = useRef<null | HTMLImageElement>(null);
 
   function closeModal() {
-    posthog.capture("user_closed_download_modal");
     setStatus("READY");
   }
 
   function downloadOutput() {
-    posthog.capture("user_downloaded_emoji");
     if (outputImage && inputFile) {
       saveAs(outputImage, generateOutputFilename(inputFile));
     }
@@ -33,20 +30,20 @@ function DownloadModal() {
   }
 
   function onModalOpenChange(open: boolean) {
-    if (open && outputImageRef.current) {
-      posthog.capture("user_opened_download_modal");
+    if (!open || !outputImageRef.current) {
+      return;
+    }
 
-      if (mode === "HEDGEHOG") {
-        const hedgehog = document.createElement("span");
-        hedgehog.innerText = "🦔";
-        hedgehog.style.fontSize = "48px";
-        const heart = document.createElement("span");
-        heart.innerText = "💖";
-        heart.style.fontSize = "24px";
-        party.confetti(outputImageRef.current, { shapes: [hedgehog, heart] });
-      } else {
-        party.confetti(outputImageRef.current);
-      }
+    if (mode === "HEDGEHOG") {
+      const hedgehog = document.createElement("span");
+      hedgehog.innerText = "🦔";
+      hedgehog.style.fontSize = "48px";
+      const heart = document.createElement("span");
+      heart.innerText = "💖";
+      heart.style.fontSize = "24px";
+      party.confetti(outputImageRef.current, { shapes: [hedgehog, heart] });
+    } else {
+      party.confetti(outputImageRef.current);
     }
   }
 
