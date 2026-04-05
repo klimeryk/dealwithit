@@ -1,17 +1,17 @@
-import "jimp/browser/lib/jimp.js";
-import { SettingOutlined } from "@ant-design/icons";
-import { Button } from "antd";
-import { useEffect, useRef } from "react";
+import 'jimp/browser/lib/jimp.js';
+import { SettingOutlined } from '@ant-design/icons';
+import { Button } from 'antd';
+import { useEffect, useRef } from 'react';
 
-import ConfigurationForm from "./ConfigurationForm.tsx";
-import DownloadModal from "./DownloadModal.tsx";
-import FileInput from "./FileInput.tsx";
-import Footer from "./Footer.tsx";
-import InputImage from "./InputImage.tsx";
-import SettingsDrawer from "./SettingsDrawer.tsx";
-import SortableGlassesList from "./SortableGlassesList.tsx";
-import { useBoundStore } from "./store/index.ts";
-import Title from "./Title.tsx";
+import ConfigurationForm from './ConfigurationForm.tsx';
+import DownloadModal from './DownloadModal.tsx';
+import FileInput from './FileInput.tsx';
+import Footer from './Footer.tsx';
+import InputImage from './InputImage.tsx';
+import SettingsDrawer from './SettingsDrawer.tsx';
+import SortableGlassesList from './SortableGlassesList.tsx';
+import { useBoundStore } from './store/index.ts';
+import Title from './Title.tsx';
 
 function App() {
   const messageApi = useBoundStore((state) => state.messageApi);
@@ -22,9 +22,9 @@ function App() {
   const mode = useBoundStore((state) => state.mode);
 
   useEffect(() => {
-    if (mode === "HEDGEHOG") {
+    if (mode === 'HEDGEHOG') {
       messageApi?.info({
-        content: "Hello fellow hedgehog fan!",
+        content: 'Hello fellow hedgehog fan!',
         icon: <span className="mr-1 text-lg">🦔</span>,
       });
     }
@@ -40,10 +40,7 @@ function App() {
 
     return (
       <>
-        <InputImage
-          inputImageRef={inputImageRef}
-          onInputImageLoad={handleInputImageLoad}
-        />
+        <InputImage inputImageRef={inputImageRef} onInputImageLoad={handleInputImageLoad} />
         <SortableGlassesList />
       </>
     );
@@ -53,7 +50,7 @@ function App() {
     setDrawerOpen(true);
   }
 
-  const shouldRenderFileInput = ["START", "INPUT", "LOADING"].includes(status);
+  const shouldRenderFileInput = ['START', 'INPUT', 'LOADING'].includes(status);
 
   return (
     <>
@@ -67,9 +64,7 @@ function App() {
             onClick={onOpenDrawer}
           />
           <div className="sm:grid grid-cols-3 gap-4">
-            <div className="col-span-2 mb-4 sm:mb-0">
-              {shouldRenderFileInput ? <FileInput /> : renderInputImage()}
-            </div>
+            <div className="col-span-2 mb-4 sm:mb-0">{shouldRenderFileInput ? <FileInput /> : renderInputImage()}</div>
             <ConfigurationForm inputImageRef={inputImageRef} />
           </div>
           <DownloadModal />

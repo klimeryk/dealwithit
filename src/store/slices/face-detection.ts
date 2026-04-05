@@ -1,5 +1,5 @@
-import { FaceDetector, FilesetResolver } from "@mediapipe/tasks-vision";
-import { StateCreator } from "zustand";
+import { FaceDetector, FilesetResolver } from '@mediapipe/tasks-vision';
+import type { StateCreator } from 'zustand';
 
 import {
   getDefaultGlasses,
@@ -7,10 +7,10 @@ import {
   getGlassesSize,
   getNoseOffset,
   getRandomGlassesStyle,
-} from "../../lib/glasses.ts";
+} from '../../lib/glasses.ts';
 
-import { AppSlice } from "./app.ts";
-import { GlassesSlice } from "./glasses.ts";
+import type { AppSlice } from './app.ts';
+import type { GlassesSlice } from './glasses.ts';
 
 export interface FaceDetectionSlice {
   faceDetector: FaceDetector | undefined;
@@ -26,16 +26,16 @@ export const createFaceDetectionSlice: StateCreator<
   function startInitializingFaceDetector() {
     async function initializeFaceDetector() {
       const vision = await FilesetResolver.forVisionTasks(
-        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm",
+        'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm',
       );
       const faceDetector = await FaceDetector.createFromOptions(vision, {
         baseOptions: {
           modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite`,
-          delegate: "GPU",
+          delegate: 'GPU',
         },
-        runningMode: "IMAGE",
+        runningMode: 'IMAGE',
       });
-      set(() => ({ faceDetector, status: "INPUT" }));
+      set(() => ({ faceDetector, status: 'INPUT' }));
     }
     initializeFaceDetector();
 
@@ -66,15 +66,12 @@ export const createFaceDetectionSlice: StateCreator<
             keypoint.y *= image.naturalHeight;
           }
 
-          const newGlasses =
-            faces.length === 1
-              ? getDefaultGlasses()
-              : getDefaultGlasses(getRandomGlassesStyle());
+          const newGlasses = faces.length === 1 ? getDefaultGlasses() : getDefaultGlasses(getRandomGlassesStyle());
           const originalGlassesSize = getGlassesSize(newGlasses.styleUrl);
           const originalEyesDistance = getEyesDistance(newGlasses);
           const eyesDistance = Math.sqrt(
-            Math.pow(scaleY * (face.keypoints[0].y - face.keypoints[1].y), 2) +
-              Math.pow(scaleX * (face.keypoints[0].x - face.keypoints[1].x), 2),
+            (scaleY * (face.keypoints[0].y - face.keypoints[1].y)) ** 2 +
+              (scaleX * (face.keypoints[0].x - face.keypoints[1].x)) ** 2,
           );
           const glassesScale = eyesDistance / originalEyesDistance;
           newGlasses.size.width = originalGlassesSize.width * glassesScale;
@@ -82,16 +79,11 @@ export const createFaceDetectionSlice: StateCreator<
           const noseX = face.keypoints[2].x;
           const noseY = Math.abs(face.keypoints[0].y - face.keypoints[1].y) / 2;
           const noseOffset = getNoseOffset(newGlasses);
-          const glassesScaleX =
-            newGlasses.size.width / originalGlassesSize.width;
-          const glassesScaleY =
-            newGlasses.size.height / originalGlassesSize.height;
+          const glassesScaleX = newGlasses.size.width / originalGlassesSize.width;
+          const glassesScaleY = newGlasses.size.height / originalGlassesSize.height;
           newGlasses.coordinates = {
             x: Math.abs(noseX * scaleX - noseOffset.x * glassesScaleX),
-            y: Math.abs(
-              (face.keypoints[0].y + noseY) * scaleY -
-                noseOffset.y * glassesScaleY,
-            ),
+            y: Math.abs((face.keypoints[0].y + noseY) * scaleY - noseOffset.y * glassesScaleY),
           };
 
           newGlassesList.push(newGlasses);
@@ -100,7 +92,7 @@ export const createFaceDetectionSlice: StateCreator<
         return newGlassesList;
       }
 
-      set(() => ({ glassesList: getDetectedGlasses(), status: "READY" }));
+      set(() => ({ glassesList: getDetectedGlasses(), status: 'READY' }));
     },
   };
 };

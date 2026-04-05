@@ -1,7 +1,7 @@
-import { ColorPicker } from "antd";
-import type { AggregationColor } from "antd/es/color-picker/color";
+import { ColorPicker } from 'antd';
+import type { AggregationColor } from 'antd/es/color-picker/color';
 
-import { useBoundStore } from "./store/index.ts";
+import { useBoundStore } from './store/index.ts';
 
 interface GlassesColorPickerProps {
   disabled: boolean;
@@ -17,12 +17,7 @@ function GlassesColorPicker({ disabled, glasses }: GlassesColorPickerProps) {
 
   return (
     <span title="Color of the glasses">
-      <ColorPicker
-        defaultValue="#000000"
-        size="small"
-        onChange={handleColorChange}
-        disabled={disabled}
-      />
+      <ColorPicker defaultValue="#000000" size="small" onChange={handleColorChange} disabled={disabled} />
     </span>
   );
 }

@@ -1,5 +1,5 @@
-import { GithubOutlined } from "@ant-design/icons";
-import { Typography } from "antd";
+import { GithubOutlined } from '@ant-design/icons';
+import { Typography } from 'antd';
 
 const { Text, Link } = Typography;
 
@@ -8,7 +8,7 @@ export default function Title() {
     <div className="text-center">
       <Text className="sm:flex justify-center gap-1" type="secondary">
         <div>
-          Made with passion by{" "}
+          Made with passion by{' '}
           <Link href="https://klimer.eu/" target="_blank">
             Igor Klimer
           </Link>
@@ -16,11 +16,7 @@ export default function Title() {
         </div>
         <div>
           Source code on
-          <Link
-            className="ms-2"
-            href="https://github.com/klimeryk/dealwithit"
-            target="_blank"
-          >
+          <Link className="ms-2" href="https://github.com/klimeryk/dealwithit" target="_blank">
             <GithubOutlined className="mr-1" />
             GitHub
           </Link>

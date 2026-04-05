@@ -1,6 +1,6 @@
-import { StateCreator } from "zustand";
+import type { StateCreator } from 'zustand';
 
-export type ThemeMode = "dark" | "light";
+export type ThemeMode = 'dark' | 'light';
 
 export interface ThemeSlice {
   themeMode: ThemeMode;
@@ -8,31 +8,23 @@ export interface ThemeSlice {
 }
 
 function getInitialThemeModePreference(): ThemeMode {
-  const savedThemeMode = localStorage.getItem("theme");
-  if (
-    savedThemeMode &&
-    (savedThemeMode === "light" || savedThemeMode === "dark")
-  ) {
+  const savedThemeMode = localStorage.getItem('theme');
+  if (savedThemeMode && (savedThemeMode === 'light' || savedThemeMode === 'dark')) {
     return savedThemeMode;
   }
 
   if (window.matchMedia) {
-    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      return "dark";
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark';
     }
   }
 
-  const contentThemeMode = window.getComputedStyle(
-    document.documentElement,
-  ).content;
-  if (
-    contentThemeMode &&
-    (contentThemeMode === "light" || contentThemeMode === "dark")
-  ) {
+  const contentThemeMode = window.getComputedStyle(document.documentElement).content;
+  if (contentThemeMode && (contentThemeMode === 'light' || contentThemeMode === 'dark')) {
     return contentThemeMode;
   }
 
-  return "light";
+  return 'light';
 }
 
 export const createThemeSlice: StateCreator<ThemeSlice> = (set) => ({

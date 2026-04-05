@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build && rm -f dist/deal-with-it-generator/_redirects && cp public/_redirects dist/",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "lint": "biome check",
+    "lint:fix": "npm run lint -- --write --unsafe",
+    "preview": "vite preview",
+    "tsc": "tsc"
   },
   "dependencies": {
     "@ant-design/icons": "^5.5.1",
@@ -27,22 +29,13 @@
     "zustand": "^5.0.0-rc.2"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.4.10",
     "@types/file-saver": "^2.0.7",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
-    "@typescript-eslint/eslint-plugin": "^7.15.0",
-    "@typescript-eslint/parser": "^7.18.0",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.20",
-    "eslint": "^8.57.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-import-resolver-typescript": "^3.6.1",
-    "eslint-plugin-import": "^2.31.0",
-    "eslint-plugin-prettier": "^5.2.1",
-    "eslint-plugin-react-hooks": "^4.6.2",
-    "eslint-plugin-react-refresh": "^0.4.7",
     "postcss": "^8.4.40",
-    "prettier": "3.3.3",
     "tailwindcss": "^3.4.7",
     "typescript": "^5.2.2",
     "vite": "^5.3.4"

@@ -1,13 +1,6 @@
-type AppStatus =
-  | "START"
-  | "INPUT"
-  | "LOADING"
-  | "DETECTING"
-  | "READY"
-  | "GENERATING"
-  | "DONE";
+type AppStatus = 'START' | 'INPUT' | 'LOADING' | 'DETECTING' | 'READY' | 'GENERATING' | 'DONE';
 
-type AppMode = "NORMAL" | "HEDGEHOG";
+type AppMode = 'NORMAL' | 'HEDGEHOG';
 
 type WithFlip = {
   flipHorizontally: boolean;
@@ -22,7 +15,7 @@ interface WithNanoId {
   id: nanoId;
 }
 
-type GlassesDirection = "up" | "down" | "right" | "left";
+type GlassesDirection = 'up' | 'down' | 'right' | 'left';
 
 type Glasses = WithFlip &
   WithNanoId & {
@@ -36,7 +29,7 @@ type Glasses = WithFlip &
   };
 
 interface LoopingOptions {
-  mode: "infinite" | "off" | "finite";
+  mode: 'infinite' | 'off' | 'finite';
   loops: number;
 }
 

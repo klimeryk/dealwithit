@@ -1,7 +1,7 @@
-import { produce } from "immer";
-import { StateCreator } from "zustand";
+import { produce } from 'immer';
+import type { StateCreator } from 'zustand';
 
-import { AppSlice } from "./app.ts";
+import type { AppSlice } from './app.ts';
 
 export interface ImageSlice {
   imageOptions: ImageOptions;
@@ -14,29 +14,22 @@ export interface ImageSlice {
   toggleImageOption: (field: keyof ImageOptions) => void;
 }
 
-export const createImageSlice: StateCreator<
-  ImageSlice & AppSlice,
-  [],
-  [],
-  ImageSlice
-> = (set, get) => ({
+export const createImageSlice: StateCreator<ImageSlice & AppSlice, [], [], ImageSlice> = (set, get) => ({
   imageOptions: { flipVertically: false, flipHorizontally: false },
   inputFile: undefined,
-  inputImageDataUrl: "",
+  inputImageDataUrl: '',
   outputImage: undefined,
-  outputImageDataUrl: "",
+  outputImageDataUrl: '',
 
   setInputFile: async (file) => {
-    const detectedMode = file.name.match(/(hedgehog)/gi)
-      ? "HEDGEHOG"
-      : "NORMAL";
+    const detectedMode = file.name.match(/(hedgehog)/gi) ? 'HEDGEHOG' : 'NORMAL';
 
     const fileAsDataUrl = await getDataUrl(file);
     set(() => ({
       mode: detectedMode,
       inputFile: file,
       inputImageDataUrl: fileAsDataUrl,
-      status: "DETECTING",
+      status: 'DETECTING',
     }));
   },
 

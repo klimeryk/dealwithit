@@ -1,4 +1,4 @@
-import glassesImageUrl from "./assets/glasses.png";
+import glassesImageUrl from './assets/glasses.png';
 
 export default function Title() {
   return (
@@ -11,14 +11,13 @@ export default function Title() {
           Deal With It
           <img
             className="absolute slide-glasses"
-            style={{ width: "100px", top: "31px", left: "102px" }}
+            style={{ width: '100px', top: '31px', left: '102px' }}
             src={glassesImageUrl}
+            alt="Deal with it glasses in title"
           />
         </h1>
       </div>
-      <h2 className="-mt-4 text-lg text-center text-gray-300">
-        GIF emoji generator
-      </h2>
+      <h2 className="-mt-4 text-lg text-center text-gray-300">GIF emoji generator</h2>
       <h3 className="leading-relaxed text-sm text-center text-gray-500">
         All done artisanally and securely in your browser.
       </h3>

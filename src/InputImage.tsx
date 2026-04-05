@@ -1,14 +1,14 @@
-import { DeleteOutlined } from "@ant-design/icons";
-import { DndContext } from "@dnd-kit/core";
-import type { DragEndEvent } from "@dnd-kit/core";
-import { Button } from "antd";
+import { DeleteOutlined } from '@ant-design/icons';
+import type { DragEndEvent } from '@dnd-kit/core';
+import { DndContext } from '@dnd-kit/core';
+import { Button } from 'antd';
 
-import GlassesDraggable from "./GlassesDraggable.tsx";
-import FlipH from "./icons/FlipH.tsx";
-import FlipV from "./icons/FlipV.tsx";
-import { restrictToParentWithOffset } from "./lib/drag-modifiers.ts";
-import { getFlipTransform } from "./lib/utils.ts";
-import { useBoundStore } from "./store/index.ts";
+import GlassesDraggable from './GlassesDraggable.tsx';
+import FlipH from './icons/FlipH.tsx';
+import FlipV from './icons/FlipV.tsx';
+import { restrictToParentWithOffset } from './lib/drag-modifiers.ts';
+import { getFlipTransform } from './lib/utils.ts';
+import { useBoundStore } from './store/index.ts';
 
 interface InputImageProps {
   onInputImageLoad: () => void;
@@ -30,11 +30,9 @@ function InputImage({ onInputImageLoad, inputImageRef }: InputImageProps) {
     transform: getFlipTransform(imageOptions),
   };
 
-  function handleImageOptionsChange(
-    event: React.MouseEvent<HTMLElement, MouseEvent>,
-  ) {
+  function handleImageOptionsChange(event: React.MouseEvent<HTMLElement, MouseEvent>) {
     const field = event.currentTarget.dataset.field as string;
-    if (field !== "flipVertically" && field !== "flipHorizontally") {
+    if (field !== 'flipVertically' && field !== 'flipHorizontally') {
       return;
     }
 
@@ -46,9 +44,7 @@ function InputImage({ onInputImageLoad, inputImageRef }: InputImageProps) {
   }
 
   function handleInputImageError() {
-    messageApi?.warning(
-      "The file could not be loaded - make sure it's a valid image file.",
-    );
+    messageApi?.warning("The file could not be loaded - make sure it's a valid image file.");
 
     goBackToStart();
   }
@@ -58,25 +54,17 @@ function InputImage({ onInputImageLoad, inputImageRef }: InputImageProps) {
   }
 
   function renderGlasses(glasses: Glasses) {
-    return (
-      <GlassesDraggable
-        key={glasses.id}
-        glasses={glasses}
-        inputImageRef={inputImageRef}
-      />
-    );
+    return <GlassesDraggable key={glasses.id} glasses={glasses} inputImageRef={inputImageRef} />;
   }
 
-  const isLoading = status !== "READY";
+  const isLoading = status !== 'READY';
 
   return (
-    <DndContext
-      onDragEnd={handleDragEnd}
-      modifiers={[restrictToParentWithOffset]}
-    >
+    <DndContext onDragEnd={handleDragEnd} modifiers={[restrictToParentWithOffset]}>
       <div className="flex flex-col gap-2 items-center">
         <div className="relative select-none">
           <img
+            alt="Input to deal with"
             style={imageStyle}
             ref={inputImageRef}
             src={inputImageDataUrl}

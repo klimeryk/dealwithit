@@ -1,9 +1,9 @@
-import type { Bitmap, Jimp } from "@jimp/core";
-import type { Blit } from "@jimp/plugin-blit";
-import type { ResizeClass } from "@jimp/plugin-resize";
-import { BitmapImage, GifFrame, GifUtil } from "gifwrap";
+import type { Bitmap, Jimp } from '@jimp/core';
+import type { Blit } from '@jimp/plugin-blit';
+import type { ResizeClass } from '@jimp/plugin-resize';
+import { BitmapImage, GifFrame, GifUtil } from 'gifwrap';
 
-const { Jimp } = self;
+const { Jimp: JimpInstance } = self;
 
 export function prepareReportProgress(numberOfFrames: number) {
   let stepNumber = 0;
@@ -11,29 +11,21 @@ export function prepareReportProgress(numberOfFrames: number) {
   return function reportProgress() {
     ++stepNumber;
     self.postMessage({
-      type: "PROGRESS",
+      type: 'PROGRESS',
       progress: (stepNumber / numberOfSteps) * 100,
     });
   };
 }
 
-function getLastFrameDelay({
-  looping,
-  lastFrameDelay,
-  frameDelay,
-}: ConfigurationOptions) {
-  if (looping.mode === "off") {
+function getLastFrameDelay({ looping, lastFrameDelay, frameDelay }: ConfigurationOptions) {
+  if (looping.mode === 'off') {
     // If you waited for a day, you deserve to see this workaround...
     // Since there is no way to not loop a gif using gifwrap,
     // let's just put a reeeeaaaaallly long delay after the last frame.
     return 8640000;
   }
 
-  return Math.round(
-    (lastFrameDelay.enabled && lastFrameDelay.value > 0
-      ? lastFrameDelay.value
-      : frameDelay) / 10,
-  );
+  return Math.round((lastFrameDelay.enabled && lastFrameDelay.value > 0 ? lastFrameDelay.value : frameDelay) / 10);
 }
 
 function getMovementForFrame(
@@ -45,18 +37,18 @@ function getMovementForFrame(
   frameNumber: number,
   numberOfFrames: number,
 ) {
-  if (direction === "up") {
+  if (direction === 'up') {
     const yMovementPerFrame = (scaledY + glassesHeight) / numberOfFrames;
     return { x: scaledX, y: frameNumber * yMovementPerFrame - glassesHeight };
   }
-  if (direction === "down") {
+  if (direction === 'down') {
     const yMovementPerFrame = (imageHeight - scaledY) / numberOfFrames;
     return {
       x: scaledX,
       y: imageHeight - frameNumber * yMovementPerFrame,
     };
   }
-  if (direction === "left") {
+  if (direction === 'left') {
     const xMovementPerFrame = (scaledX + glassesWidth) / numberOfFrames;
     return { x: frameNumber * xMovementPerFrame - glassesWidth, y: scaledY };
   } else {
@@ -97,19 +89,13 @@ export function renderGlassesFrame(
   GifUtil.quantizeDekker(jimpBitmap, 64);
   return new GifFrame(jimpBitmap, {
     delayCentisecs:
-      frameNumber !== numberOfFrames
-        ? Math.round(frameDelay / 10)
-        : getLastFrameDelay(configurationOptions),
+      frameNumber !== numberOfFrames ? Math.round(frameDelay / 10) : getLastFrameDelay(configurationOptions),
   });
 }
 
-export function maybeFlipImage(
-  image: Jimp,
-  { flipHorizontally, flipVertically }: WithFlip,
-) {
+export function maybeFlipImage(image: Jimp, { flipHorizontally, flipVertically }: WithFlip) {
   if (flipHorizontally || flipVertically) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (image as any).flip(flipHorizontally, flipVertically);
+    (image as Jimp & { flip(h: boolean, v: boolean): void }).flip(flipHorizontally, flipVertically);
   }
 
   return image;
@@ -117,20 +103,16 @@ export function maybeFlipImage(
 
 const glassesImagesCache: Record<string, Jimp & ResizeClass> = {};
 
-export async function getGlassesImages(
-  glassesList: Glasses[],
-  scaleX: number,
-  scaleY: number,
-) {
+export async function getGlassesImages(glassesList: Glasses[], scaleX: number, scaleY: number) {
   const outputList = {} as Record<nanoId, Jimp>;
   for (const glasses of glassesList) {
     const cacheKey = `${glasses.styleUrl} ${glasses.size.width} ${glasses.size.height} ${scaleX} ${scaleY}`;
     if (!glassesImagesCache[cacheKey]) {
-      const glassesImage = await Jimp.read(glasses.styleUrl);
+      const glassesImage = await JimpInstance.read(glasses.styleUrl);
       glassesImagesCache[cacheKey] = glassesImage.resize(
         scaleX * glasses.size.width,
         scaleY * glasses.size.height,
-        Jimp.RESIZE_BICUBIC,
+        JimpInstance.RESIZE_BICUBIC,
       );
     }
     const glassesImage = glassesImagesCache[cacheKey].clone();

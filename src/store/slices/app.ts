@@ -1,5 +1,5 @@
-import { MessageInstance } from "antd/es/message/interface";
-import { StateCreator } from "zustand";
+import type { MessageInstance } from 'antd/es/message/interface';
+import type { StateCreator } from 'zustand';
 
 export interface AppSlice {
   isDrawerOpen: boolean;
@@ -17,14 +17,14 @@ export interface AppSlice {
 export const createAppSlice: StateCreator<AppSlice> = (set) => ({
   isDrawerOpen: false,
   messageApi: undefined,
-  mode: "NORMAL",
-  status: "START",
+  mode: 'NORMAL',
+  status: 'START',
   successCount: 0,
   goBackToStart: () =>
     set(() => ({
-      status: "INPUT",
+      status: 'INPUT',
       inputFile: undefined,
-      inputImageDataUrl: "",
+      inputImageDataUrl: '',
       glassesList: [],
       imageOptions: {
         flipVertically: false,

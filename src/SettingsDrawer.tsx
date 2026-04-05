@@ -1,7 +1,7 @@
-import { MoonOutlined, SunOutlined } from "@ant-design/icons";
-import { Drawer, Segmented, Typography } from "antd";
+import { MoonOutlined, SunOutlined } from '@ant-design/icons';
+import { Drawer, Segmented, Typography } from 'antd';
 
-import { useBoundStore } from "./store/index.ts";
+import { useBoundStore } from './store/index.ts';
 
 const { Link, Paragraph, Title } = Typography;
 
@@ -22,45 +22,30 @@ function SettingsDrawer() {
         onChange={setTheme}
         defaultValue={theme}
         options={[
-          { label: "Light mode", value: "light", icon: <SunOutlined /> },
-          { label: "Dark mode", value: "dark", icon: <MoonOutlined /> },
+          { label: 'Light mode', value: 'light', icon: <SunOutlined /> },
+          { label: 'Dark mode', value: 'dark', icon: <MoonOutlined /> },
         ]}
       />
       <Title level={4}>About</Title>
       <Paragraph>
         <ul>
+          <li>All operations done fully client-side - no backend, no private data leaves your browser.</li>
           <li>
-            All operations done fully client-side - no backend, no private data
-            leaves your browser.
-          </li>
-          <li>
-            Uses{" "}
-            <Link
-              href="https://ai.google.dev/edge/mediapipe/solutions/vision/face_detector"
-              target="_blank"
-            >
+            Uses{' '}
+            <Link href="https://ai.google.dev/edge/mediapipe/solutions/vision/face_detector" target="_blank">
               MediaPipe Face Detector task
-            </Link>{" "}
+            </Link>{' '}
             to automatically scale and position glasses on the detected faces.
           </li>
           <li>
             Extensive customization options for glasses:
             <ul>
-              <li>
-                Placement of glasses anywhere on the input image (including
-                slightly going outside it).
-              </li>
+              <li>Placement of glasses anywhere on the input image (including slightly going outside it).</li>
               <li>Change the size of glasses.</li>
-              <li>
-                Change the color of glasses to any RGBA color (only applies to
-                Classic style).
-              </li>
+              <li>Change the color of glasses to any RGBA color (only applies to Classic style).</li>
               <li>No limit on the number of glasses.</li>
               <li>Flip the glasses vertically or horizontally.</li>
-              <li>
-                Customize the direction from which the glasses appear on the
-                image.
-              </li>
+              <li>Customize the direction from which the glasses appear on the image.</li>
               <li>Different types of glasses.</li>
             </ul>
           </li>

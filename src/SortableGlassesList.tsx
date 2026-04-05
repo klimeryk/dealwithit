@@ -1,18 +1,12 @@
-import { PlusCircleOutlined } from "@ant-design/icons";
-import { closestCenter, DndContext } from "@dnd-kit/core";
-import type { DragEndEvent } from "@dnd-kit/core";
-import {
-  restrictToParentElement,
-  restrictToVerticalAxis,
-} from "@dnd-kit/modifiers";
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { Alert, Button, Card } from "antd";
+import { PlusCircleOutlined } from '@ant-design/icons';
+import type { DragEndEvent } from '@dnd-kit/core';
+import { closestCenter, DndContext } from '@dnd-kit/core';
+import { restrictToParentElement, restrictToVerticalAxis } from '@dnd-kit/modifiers';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { Alert, Button, Card } from 'antd';
 
-import SortableGlassesItem from "./SortableGlassesItem.tsx";
-import { useBoundStore } from "./store/index.ts";
+import SortableGlassesItem from './SortableGlassesItem.tsx';
+import { useBoundStore } from './store/index.ts';
 
 function SortableGlassesList() {
   const status = useBoundStore((state) => state.status);
@@ -42,14 +36,9 @@ function SortableGlassesList() {
       size="small"
       title="Glasses"
       styles={cardStyles}
-      loading={status === "DETECTING"}
+      loading={status === 'DETECTING'}
       extra={
-        <Button
-          size="small"
-          icon={<PlusCircleOutlined />}
-          disabled={status !== "READY"}
-          onClick={addDefaultGlasses}
-        >
+        <Button size="small" icon={<PlusCircleOutlined />} disabled={status !== 'READY'} onClick={addDefaultGlasses}>
           Add
         </Button>
       }
@@ -59,10 +48,7 @@ function SortableGlassesList() {
         collisionDetection={closestCenter}
         onDragEnd={handleGlassesItemDragEnd}
       >
-        <SortableContext
-          items={glassesList}
-          strategy={verticalListSortingStrategy}
-        >
+        <SortableContext items={glassesList} strategy={verticalListSortingStrategy}>
           <ul>
             {glassesList.map(renderGlassesItem)}
             {glassesList.length === 0 && (
@@ -73,11 +59,7 @@ function SortableGlassesList() {
                 description="How can you deal with it without any glasses? How about adding at least one pair?"
                 type="warning"
                 action={
-                  <Button
-                    size="small"
-                    icon={<PlusCircleOutlined />}
-                    onClick={addDefaultGlasses}
-                  >
+                  <Button size="small" icon={<PlusCircleOutlined />} onClick={addDefaultGlasses}>
                     Add
                   </Button>
                 }

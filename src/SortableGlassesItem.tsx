@@ -1,32 +1,28 @@
-import { DeleteOutlined, EyeOutlined, HolderOutlined } from "@ant-design/icons";
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { Button, Select } from "antd";
-
-import glassesSmallImageUrl from "./assets/glasses-small.png";
-import glassesSymmetricalPartyImageUrl from "./assets/glasses-symmetrical-party.png";
-import glassesSymmetricalImageUrl from "./assets/glasses-symmetrical.png";
-import glassesImageUrl from "./assets/glasses.png";
-import GlassesColorPicker from "./GlassesColorPicker.tsx";
-import FlipH from "./icons/FlipH.tsx";
-import FlipV from "./icons/FlipV.tsx";
-import { useBoundStore } from "./store/index.ts";
+import { DeleteOutlined, EyeOutlined, HolderOutlined } from '@ant-design/icons';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { Button, Select } from 'antd';
+import glassesImageUrl from './assets/glasses.png';
+import glassesSmallImageUrl from './assets/glasses-small.png';
+import glassesSymmetricalImageUrl from './assets/glasses-symmetrical.png';
+import glassesSymmetricalPartyImageUrl from './assets/glasses-symmetrical-party.png';
+import GlassesColorPicker from './GlassesColorPicker.tsx';
+import FlipH from './icons/FlipH.tsx';
+import FlipV from './icons/FlipV.tsx';
+import { useBoundStore } from './store/index.ts';
 
 interface SortableGlassesItemProps {
   glasses: Glasses;
 }
 
 function SortableGlassesItem({ glasses }: SortableGlassesItemProps) {
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: glasses.id });
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: glasses.id });
 
   const status = useBoundStore((state) => state.status);
   const flipGlasses = useBoundStore((state) => state.flip);
   const removeGlasses = useBoundStore((state) => state.remove);
   const selectGlasses = useBoundStore((state) => state.select);
-  const updateGlassesDirection = useBoundStore(
-    (state) => state.updateDirection,
-  );
+  const updateGlassesDirection = useBoundStore((state) => state.updateDirection);
   const updateGlassesStyle = useBoundStore((state) => state.updateStyle);
 
   const style = {
@@ -42,9 +38,7 @@ function SortableGlassesItem({ glasses }: SortableGlassesItemProps) {
     updateGlassesStyle(glasses.id, value);
   }
 
-  function handleSelectionChange(
-    event: React.MouseEvent<HTMLElement, MouseEvent>,
-  ) {
+  function handleSelectionChange(event: React.MouseEvent<HTMLElement, MouseEvent>) {
     const id = event.currentTarget.dataset.id as nanoId;
     selectGlasses(id);
   }
@@ -52,7 +46,7 @@ function SortableGlassesItem({ glasses }: SortableGlassesItemProps) {
   function handleFlipChange(event: React.MouseEvent<HTMLElement, MouseEvent>) {
     const id = event.currentTarget.dataset.id as nanoId;
     const field = event.currentTarget.dataset.field as string;
-    if (field !== "flipHorizontally" && field !== "flipVertically") {
+    if (field !== 'flipHorizontally' && field !== 'flipVertically') {
       return;
     }
     flipGlasses(id, field);
@@ -74,39 +68,39 @@ function SortableGlassesItem({ glasses }: SortableGlassesItemProps) {
       value: glassesImageUrl,
     },
     {
-      label: "Small",
+      label: 'Small',
       value: glassesSmallImageUrl,
     },
     {
-      label: "Symmetrical",
+      label: 'Symmetrical',
       value: glassesSymmetricalImageUrl,
     },
     {
-      label: "Party",
+      label: 'Party',
       value: glassesSymmetricalPartyImageUrl,
     },
   ];
 
   const directionOptions = [
     {
-      label: "⬇️",
-      value: "up",
+      label: '⬇️',
+      value: 'up',
     },
     {
-      label: "⬆️",
-      value: "down",
+      label: '⬆️',
+      value: 'down',
     },
     {
-      label: "➡️",
-      value: "left",
+      label: '➡️',
+      value: 'left',
     },
     {
-      label: "⬅️",
-      value: "right",
+      label: '⬅️',
+      value: 'right',
     },
   ];
 
-  const isLoading = status !== "READY";
+  const isLoading = status !== 'READY';
 
   return (
     <li
@@ -149,7 +143,7 @@ function SortableGlassesItem({ glasses }: SortableGlassesItemProps) {
             <Button
               title="Flip glasses horizontally"
               size="small"
-              type={glasses.flipHorizontally ? "primary" : "default"}
+              type={glasses.flipHorizontally ? 'primary' : 'default'}
               icon={<FlipH />}
               data-id={glasses.id}
               data-field="flipHorizontally"
@@ -159,23 +153,21 @@ function SortableGlassesItem({ glasses }: SortableGlassesItemProps) {
             <Button
               title="Flip glasses vertically"
               size="small"
-              type={glasses.flipVertically ? "primary" : "default"}
+              type={glasses.flipVertically ? 'primary' : 'default'}
               icon={<FlipV />}
               data-id={glasses.id}
               data-field="flipVertically"
               disabled={isLoading}
               onClick={handleFlipChange}
             />
-            {glasses.style === glassesImageUrl && (
-              <GlassesColorPicker glasses={glasses} disabled={isLoading} />
-            )}
+            {glasses.style === glassesImageUrl && <GlassesColorPicker glasses={glasses} disabled={isLoading} />}
           </div>
         </div>
         <div className="flex gap-2 flex-wrap justify-end">
           <Button
             title="Highlight this instance of glasses on preview - this is only to help you find them, it does not affect output"
             size="small"
-            type={glasses.isSelected ? "primary" : "default"}
+            type={glasses.isSelected ? 'primary' : 'default'}
             icon={<EyeOutlined />}
             data-id={glasses.id}
             disabled={isLoading}

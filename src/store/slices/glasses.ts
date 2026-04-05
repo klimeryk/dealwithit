@@ -1,10 +1,10 @@
-import type { Coordinates } from "@dnd-kit/core/dist/types";
-import { arrayMove } from "@dnd-kit/sortable";
-import { produce } from "immer";
-import { StateCreator } from "zustand";
+import type { Coordinates } from '@dnd-kit/core/dist/types';
+import { arrayMove } from '@dnd-kit/sortable';
+import { produce } from 'immer';
+import type { StateCreator } from 'zustand';
 
-import { computeStyleUrl, getDefaultGlasses } from "../../lib/glasses.ts";
-import { byId } from "../../lib/id-utils.ts";
+import { computeStyleUrl, getDefaultGlasses } from '../../lib/glasses.ts';
+import { byId } from '../../lib/id-utils.ts';
 
 export interface GlassesSlice {
   glassesList: Glasses[];
@@ -57,10 +57,7 @@ export const createGlassesSlice: StateCreator<GlassesSlice> = (set, get) => ({
     if (index === -1) {
       return;
     }
-    const newStyleUrl = await computeStyleUrl(
-      style,
-      get().glassesList[index].styleColor,
-    );
+    const newStyleUrl = await computeStyleUrl(style, get().glassesList[index].styleColor);
     return set(
       produce((draft) => {
         draft.glassesList[index].style = style;
@@ -74,10 +71,7 @@ export const createGlassesSlice: StateCreator<GlassesSlice> = (set, get) => ({
       return;
     }
 
-    const newStyleUrl = await computeStyleUrl(
-      get().glassesList[index].style,
-      color,
-    );
+    const newStyleUrl = await computeStyleUrl(get().glassesList[index].style, color);
     return set(
       produce((draft) => {
         draft.glassesList[index].styleColor = color;
@@ -126,7 +120,7 @@ export const createGlassesSlice: StateCreator<GlassesSlice> = (set, get) => ({
           return;
         }
 
-        let previouslySelectedId;
+        let previouslySelectedId: nanoId | null = null;
         draft.glassesList = draft.glassesList.map((glasses: Glasses) => {
           if (glasses.isSelected) {
             previouslySelectedId = glasses.id;

@@ -1,18 +1,17 @@
-import type { Coordinates } from "@dnd-kit/core/dist/types";
-import { nanoid } from "nanoid";
-
-import glassesSmallImageUrl from "../assets/glasses-small.png";
-import glassesSymmetricalPartyImageUrl from "../assets/glasses-symmetrical-party.png";
-import glassesSymmetricalImageUrl from "../assets/glasses-symmetrical.png";
-import glassesImageUrl from "../assets/glasses.png";
-import glassesImageSvg from "../assets/glasses.svg?raw"; // eslint-disable-line import/no-unresolved
+import type { Coordinates } from '@dnd-kit/core/dist/types';
+import { nanoid } from 'nanoid';
+import glassesImageUrl from '../assets/glasses.png';
+import glassesImageSvg from '../assets/glasses.svg?raw';
+import glassesSmallImageUrl from '../assets/glasses-small.png';
+import glassesSymmetricalImageUrl from '../assets/glasses-symmetrical.png';
+import glassesSymmetricalPartyImageUrl from '../assets/glasses-symmetrical-party.png';
 
 export const DEFAULT_GLASSES_SIZE = 128;
 
 export function getDefaultGlasses(styleUrl = glassesImageUrl): Glasses {
   return {
     id: nanoid(),
-    direction: "up",
+    direction: 'up',
     coordinates: {
       x: 35,
       y: 54,
@@ -21,7 +20,7 @@ export function getDefaultGlasses(styleUrl = glassesImageUrl): Glasses {
     flipVertically: false,
     isSelected: false,
     style: styleUrl,
-    styleColor: "#000000",
+    styleColor: '#000000',
     styleUrl: styleUrl,
     size: {
       width: DEFAULT_GLASSES_SIZE,
@@ -38,8 +37,6 @@ export function getGlassesSize(style: string): Size {
     case glassesSymmetricalPartyImageUrl:
     case glassesSymmetricalImageUrl:
       return { width: 832, height: 160 };
-
-    case glassesImageUrl:
     default:
       return { width: 1024, height: 165 };
   }
@@ -58,8 +55,6 @@ export function getNoseOffset({ style }: Glasses): Coordinates {
     case glassesSymmetricalPartyImageUrl:
     case glassesSymmetricalImageUrl:
       return { x: 415, y: 32 };
-
-    case glassesImageUrl:
     default:
       return { x: 660, y: 64 };
   }
@@ -73,8 +68,6 @@ export function getEyesDistance({ style }: Glasses) {
     case glassesSymmetricalPartyImageUrl:
     case glassesSymmetricalImageUrl:
       return 415;
-
-    case glassesImageUrl:
     default:
       return 385;
   }
@@ -90,19 +83,16 @@ export function getRandomGlassesStyle(): string {
   return glassesStyles[Math.floor(Math.random() * glassesStyles.length)];
 }
 
-export async function computeStyleUrl(
-  style: string,
-  styleColor: string,
-): Promise<string> {
+export async function computeStyleUrl(style: string, styleColor: string): Promise<string> {
   if (style !== glassesImageUrl) {
     return style;
   }
 
-  const dataHeader = "data:image/svg+xml;charset=utf-8";
+  const dataHeader = 'data:image/svg+xml;charset=utf-8';
   const encodeAsUTF8 = (s: string) => `${dataHeader},${encodeURIComponent(s)}`;
 
   const loadImage = async (url: string): Promise<HTMLImageElement> => {
-    const $img = document.createElement("img");
+    const $img = document.createElement('img');
     $img.src = url;
     return new Promise((resolve, reject) => {
       $img.onload = () => resolve($img);
@@ -110,14 +100,14 @@ export async function computeStyleUrl(
     });
   };
 
-  const coloredGlasses = glassesImageSvg.replace("#000000", styleColor);
+  const coloredGlasses = glassesImageSvg.replace('#000000', styleColor);
   const svgData = encodeAsUTF8(coloredGlasses);
   const img = await loadImage(svgData);
-  const canvas = document.createElement("canvas");
+  const canvas = document.createElement('canvas');
   const glassesSize = getGlassesSize(style);
   canvas.width = glassesSize.width;
   canvas.height = glassesSize.height;
-  const context = canvas.getContext("2d");
+  const context = canvas.getContext('2d');
   if (!context) {
     return glassesImageUrl;
   }
