@@ -13,7 +13,7 @@ import { useBoundStore } from './store/index.ts';
 interface InputImageProps {
   onInputImageLoad: () => void;
 
-  inputImageRef: React.RefObject<HTMLImageElement>;
+  inputImageRef: React.RefObject<HTMLImageElement | null>;
 }
 
 function InputImage({ onInputImageLoad, inputImageRef }: InputImageProps) {

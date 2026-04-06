@@ -93,7 +93,7 @@ export default function FileInput() {
   );
 
   if (status === 'START') {
-    return <Spin tip="Loading AI models for face detection...">{fileInput}</Spin>;
+    return <Spin description="Loading AI models for face detection...">{fileInput}</Spin>;
   }
 
   return fileInput;

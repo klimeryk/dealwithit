@@ -10,7 +10,7 @@ import { useBoundStore } from './store/index.ts';
 
 interface GlassesDraggableProps {
   glasses: Glasses;
-  inputImageRef: React.RefObject<HTMLImageElement>;
+  inputImageRef: React.RefObject<HTMLImageElement | null>;
 }
 
 const MIN_WIDTH = 16;

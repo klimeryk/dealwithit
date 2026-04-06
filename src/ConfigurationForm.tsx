@@ -1,12 +1,12 @@
 import { FireOutlined } from '@ant-design/icons';
-import { Button, Form, InputNumber, Progress, Radio, Space, Switch } from 'antd';
+import { Button, Form, Progress, Radio, Space, Switch } from 'antd';
 import { useMemo, useState } from 'react';
-
+import InputNumberWithAddon from './InputNumberWithAddon.tsx';
 import { DEFAULT_GLASSES_SIZE } from './lib/glasses.ts';
 import { useBoundStore } from './store/index.ts';
 
 interface ConfigurationFormProps {
-  inputImageRef: React.RefObject<HTMLImageElement>;
+  inputImageRef: React.RefObject<HTMLImageElement | null>;
 }
 
 export default function ConfigurationForm({ inputImageRef }: ConfigurationFormProps) {
@@ -70,11 +70,13 @@ export default function ConfigurationForm({ inputImageRef }: ConfigurationFormPr
     setStatus('GENERATING');
   }
 
+  const disabledForm = status !== 'READY';
+
   return (
     <Form
       form={form}
       layout="vertical"
-      disabled={status !== 'READY'}
+      disabled={disabledForm}
       initialValues={
         {
           numberOfFrames: 10,
@@ -87,12 +89,12 @@ export default function ConfigurationForm({ inputImageRef }: ConfigurationFormPr
     >
       <Form.Item label="Loops" name={['looping', 'mode']}>
         <Radio.Group>
-          <Space direction="vertical">
+          <Space orientation="vertical">
             <Radio value="infinite">Infinite</Radio>
             <Radio value="off">Off</Radio>
             <Radio value="finite">
               <Form.Item name={['looping', 'loops']} noStyle>
-                <InputNumber min={1} addonAfter={numberOfLoops === 1 ? 'loop' : 'loops'} />
+                <InputNumberWithAddon addon={numberOfLoops === 1 ? 'loop' : 'loops'} min={1} disabled={disabledForm} />
               </Form.Item>
             </Radio>
           </Space>
@@ -103,10 +105,10 @@ export default function ConfigurationForm({ inputImageRef }: ConfigurationFormPr
         tooltip="How many frames should be rendered - more frames, smoother motion, but bigger file size."
         name="numberOfFrames"
       >
-        <InputNumber addonAfter="frames" style={{ width: '100%' }} min={2} />
+        <InputNumberWithAddon addon="frames" style={{ width: '100%' }} min={2} disabled={disabledForm} />
       </Form.Item>
       <Form.Item label="Frame delay" tooltip="How long each frame should take, in miliseconds" name="frameDelay">
-        <InputNumber addonAfter="ms" style={{ width: '100%' }} min={0} step={10} />
+        <InputNumberWithAddon addon="ms" style={{ width: '100%' }} min={0} step={10} disabled={disabledForm} />
       </Form.Item>
       <Form.Item
         label="Last frame delay"
@@ -117,8 +119,8 @@ export default function ConfigurationForm({ inputImageRef }: ConfigurationFormPr
             <Switch />
           </Form.Item>
           <Form.Item noStyle name={['lastFrameDelay', 'value']}>
-            <InputNumber
-              addonAfter="ms"
+            <InputNumberWithAddon
+              addon="ms"
               style={{ width: '100%' }}
               min={10}
               step={100}
@@ -132,7 +134,7 @@ export default function ConfigurationForm({ inputImageRef }: ConfigurationFormPr
         tooltip="The largest dimension of the output image - either width or height, depending on the aspect ratio."
         name="size"
       >
-        <InputNumber addonAfter="px" style={{ width: '100%' }} min={1} />
+        <InputNumberWithAddon addon="px" style={{ width: '100%' }} min={1} disabled={disabledForm} />
       </Form.Item>
       <Button
         block

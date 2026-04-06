@@ -60,7 +60,7 @@ function DownloadModal() {
       title={getSuccessMessage(successCount)}
       open={status === 'DONE'}
       onCancel={closeModal}
-      destroyOnClose
+      destroyOnHidden
       afterOpenChange={onModalOpenChange}
       footer={[
         <Button key="download" type="primary" onClick={downloadOutput} icon={<DownloadOutlined />}>

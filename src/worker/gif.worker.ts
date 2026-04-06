@@ -28,7 +28,7 @@ self.onmessage = (event: MessageEvent) => {
   const reportProgress = prepareReportProgress(numberOfFrames);
 
   reader.onload = async () => {
-    const originalImage = await JimpInstance.read(reader.result as Buffer);
+    const originalImage = await JimpInstance.read(reader.result as string);
     reportProgress();
     const image = getProcessedImage(originalImage, size, imageOptions);
     reportProgress();
@@ -56,7 +56,7 @@ self.onmessage = (event: MessageEvent) => {
 
     const codec = new GifCodec();
     const gif = await codec.encodeGif(frames, { loops: getNumberOfLoops() });
-    const gifBlob = new File([gif.buffer], '', { type: 'image/gif' });
+    const gifBlob = new File([new Uint8Array(gif.buffer)], '', { type: 'image/gif' });
     reportProgress();
 
     const fileReader = new FileReader();
@@ -69,5 +69,5 @@ self.onmessage = (event: MessageEvent) => {
     };
     fileReader.readAsDataURL(gifBlob);
   };
-  reader.readAsArrayBuffer(inputFile);
+  reader.readAsDataURL(inputFile);
 };
