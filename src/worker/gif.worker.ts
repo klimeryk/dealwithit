@@ -1,19 +1,24 @@
-import 'jimp/browser/lib/jimp.js';
-import type { Jimp } from '@jimp/core';
-import type { Blit } from '@jimp/plugin-blit';
-import type { ResizeClass } from '@jimp/plugin-resize';
+import { Buffer } from 'buffer';
 import { GifCodec } from 'gifwrap';
+import { Jimp, ResizeStrategy } from 'jimp';
 
-import { getGlassesImages, maybeFlipImage, prepareReportProgress, renderGlassesFrame } from './utils.ts';
+import {
+  getGlassesImages,
+  type JimpImage,
+  maybeFlipImage,
+  prepareReportProgress,
+  renderGlassesFrame,
+} from './utils.ts';
 
-const { Jimp: JimpInstance } = self;
+// gifwrap relies on a global Buffer, which browsers don't provide
+Object.assign(globalThis, { Buffer });
 
-function getProcessedImage(image: Jimp & ResizeClass & Blit, size: number, imageOptions: ImageOptions) {
+function getProcessedImage(image: JimpImage, size: number, imageOptions: ImageOptions) {
   const isImageLong = image.bitmap.width >= image.bitmap.height;
-  const width = isImageLong ? size : JimpInstance.AUTO;
-  const height = isImageLong ? JimpInstance.AUTO : size;
+  const mode = ResizeStrategy.BICUBIC;
 
-  const processedImage = image.clone().resize(width, height, JimpInstance.RESIZE_BICUBIC);
+  const processedImage = image.clone();
+  processedImage.resize(isImageLong ? { w: size, mode } : { h: size, mode });
   maybeFlipImage(processedImage, imageOptions);
 
   return processedImage;
@@ -28,7 +33,7 @@ self.onmessage = (event: MessageEvent) => {
   const reportProgress = prepareReportProgress(numberOfFrames);
 
   reader.onload = async () => {
-    const originalImage = await JimpInstance.read(reader.result as string);
+    const originalImage = await Jimp.read(reader.result as string);
     reportProgress();
     const image = getProcessedImage(originalImage, size, imageOptions);
     reportProgress();

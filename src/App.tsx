@@ -1,4 +1,3 @@
-import 'jimp/browser/lib/jimp.js';
 import { SettingOutlined } from '@ant-design/icons';
 import { Button } from 'antd';
 import { useEffect, useRef } from 'react';

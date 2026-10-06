@@ -6,12 +6,6 @@ import { ThemeSwitcher } from './ThemeSwitcher.tsx';
 
 import './index.css';
 
-declare global {
-  interface Window {
-    Jimp: typeof import('jimp');
-  }
-}
-
 const rootElement = document.getElementById('root');
 if (!rootElement) {
   throw new Error('No root element? What is even true anymore?!');

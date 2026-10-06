@@ -1,9 +1,7 @@
-import type { Bitmap, Jimp } from '@jimp/core';
-import type { Blit } from '@jimp/plugin-blit';
-import type { ResizeClass } from '@jimp/plugin-resize';
 import { BitmapImage, GifFrame, GifUtil } from 'gifwrap';
+import { type Bitmap, Jimp, ResizeStrategy } from 'jimp';
 
-const { Jimp: JimpInstance } = self;
+export type JimpImage = Awaited<ReturnType<typeof Jimp.read>>;
 
 export function prepareReportProgress(numberOfFrames: number) {
   let stepNumber = 0;
@@ -62,8 +60,8 @@ function getMovementForFrame(
 
 export function renderGlassesFrame(
   glassesList: Glasses[],
-  glassesImages: Record<nanoId, Jimp>,
-  originalImage: Jimp & Blit,
+  glassesImages: Record<nanoId, JimpImage>,
+  originalImage: JimpImage,
   scaleX: number,
   scaleY: number,
   frameNumber: number,
@@ -83,7 +81,7 @@ export function renderGlassesFrame(
       frameNumber,
       numberOfFrames,
     );
-    jimpFrame.blit(glassesImages[glasses.id], movement.x, movement.y);
+    jimpFrame.blit({ src: glassesImages[glasses.id], x: movement.x, y: movement.y });
   }
   const jimpBitmap = new BitmapImage(jimpFrame.bitmap);
   GifUtil.quantizeDekker(jimpBitmap, 64);
@@ -93,27 +91,28 @@ export function renderGlassesFrame(
   });
 }
 
-export function maybeFlipImage(image: Jimp, { flipHorizontally, flipVertically }: WithFlip) {
+export function maybeFlipImage(image: JimpImage, { flipHorizontally, flipVertically }: WithFlip) {
   if (flipHorizontally || flipVertically) {
-    (image as Jimp & { flip(h: boolean, v: boolean): void }).flip(flipHorizontally, flipVertically);
+    image.flip({ horizontal: flipHorizontally, vertical: flipVertically });
   }
 
   return image;
 }
 
-const glassesImagesCache: Record<string, Jimp & ResizeClass> = {};
+const glassesImagesCache: Record<string, JimpImage> = {};
 
 export async function getGlassesImages(glassesList: Glasses[], scaleX: number, scaleY: number) {
-  const outputList = {} as Record<nanoId, Jimp>;
+  const outputList = {} as Record<nanoId, JimpImage>;
   for (const glasses of glassesList) {
     const cacheKey = `${glasses.styleUrl} ${glasses.size.width} ${glasses.size.height} ${scaleX} ${scaleY}`;
     if (!glassesImagesCache[cacheKey]) {
-      const glassesImage = await JimpInstance.read(glasses.styleUrl);
-      glassesImagesCache[cacheKey] = glassesImage.resize(
-        scaleX * glasses.size.width,
-        scaleY * glasses.size.height,
-        JimpInstance.RESIZE_BICUBIC,
-      );
+      const glassesImage = await Jimp.read(glasses.styleUrl);
+      glassesImage.resize({
+        w: scaleX * glasses.size.width,
+        h: scaleY * glasses.size.height,
+        mode: ResizeStrategy.BICUBIC,
+      });
+      glassesImagesCache[cacheKey] = glassesImage;
     }
     const glassesImage = glassesImagesCache[cacheKey].clone();
     maybeFlipImage(glassesImage, glasses);
